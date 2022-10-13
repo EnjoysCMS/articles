@@ -1,5 +1,6 @@
 {
     "name": "enjoyscms/articles",
+    "description": "",
     "type": "enjoyscms-module",
     "license": "MIT",
     "autoload": {
@@ -7,5 +8,20 @@
             "EnjoysCMS\\Articles\\": "src/"
         }
     },
-    "require": {}
+    "require": {
+        "php": ">=8.0",
+        "enjoyscms/core": "^4.5",
+        "enjoyscms/admin": "^4.3"
+    },
+    "extra": {
+        "module-name": "Статьи",
+        "admin-links": {
+            "articles/admin": "Обзор (Список)",
+            "articles/admin/add": "Добавить статью"
+        }
+    },
+    "scripts": {
+        "post-install-cmd": "EnjoysCMS\\Module\\Articles\\Composer::assetsInstall",
+        "post-update-cmd": "EnjoysCMS\\Module\\Articles\\Composer::assetsInstall"
+    }
 }

@@ -5,8 +5,10 @@ declare(strict_types=1);
 
 namespace EnjoysCMS\Articles\Entities;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
 
 /**
  * @ORM\Entity
@@ -22,19 +24,21 @@ class Article
     private $id;
 
     /**
+     * @Gedmo\Timestampable(on="create")
      * @ORM\Column(type="datetime_immutable", name="created_at")
      */
     private \DateTimeImmutable $created;
 
     /**
-     * @ORM\Column(type="datetime_immutable", name="updated_at")
+     * @Gedmo\Timestampable(on="change", field={"title", "body"})
+     * @ORM\Column(type="datetime_immutable", nullable=true, name="updated_at")
      */
-    private \DateTimeImmutable $updated;
+    private ?\DateTimeImmutable $updated = null;
 
     /**
-     * @ORM\Column(type="datetime_immutable", name="published_at")
+     * @ORM\Column(type="datetime_immutable", nullable=true, name="published_at")
      */
-    private \DateTimeImmutable $published;
+    private ?\DateTimeImmutable $published = null;
 
     /**
      * @ORM\Column(type="boolean", options={"default": true})
@@ -45,6 +49,11 @@ class Article
      * @ORM\Column(type="string", length=255)
      */
     private string $title;
+
+    /**
+     * @ORM\Column(type="string")
+     */
+    private string $slug;
 
     /**
      * @ORM\Column(type="string", nullable=true, length=255)
@@ -61,14 +70,26 @@ class Article
      */
     private string $body;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="Tag")
+     */
     private Collection $tags;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="Category")
+     */
     private Collection $categories;
 
     /**
-     * @ORM\Column(type="integer", options={"default": true})
+     * @ORM\Column(type="integer", options={"default": 0})
      */
     private int $views = 0;
+
+    public function __construct()
+    {
+        $this->tags = new ArrayCollection();
+        $this->categories = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -80,27 +101,17 @@ class Article
         return $this->created;
     }
 
-    public function setCreated(\DateTimeImmutable $created): void
-    {
-        $this->created = $created;
-    }
-
-    public function getUpdated(): \DateTimeImmutable
+    public function getUpdated(): ?\DateTimeImmutable
     {
         return $this->updated;
     }
 
-    public function setUpdated(\DateTimeImmutable $updated): void
-    {
-        $this->updated = $updated;
-    }
-
-    public function getPublished(): \DateTimeImmutable
+    public function getPublished(): ?\DateTimeImmutable
     {
         return $this->published;
     }
 
-    public function setPublished(\DateTimeImmutable $published): void
+    public function setPublished(?\DateTimeImmutable $published): void
     {
         $this->published = $published;
     }
@@ -163,5 +174,43 @@ class Article
     public function setViews(int $views): void
     {
         $this->views = $views;
+    }
+
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
+
+
+    public function addTag(Tag $tag): void
+    {
+        if ($this->tags->contains($tag)) {
+            return;
+        }
+        $this->tags->add($tag);
+    }
+
+
+    public function getCategories(): Collection
+    {
+        return $this->categories;
+    }
+
+    public function addCategory(Category $category): void
+    {
+        if ($this->tags->contains($category)) {
+            return;
+        }
+        $this->categories->add($category);
+    }
+
+    public function getSlug(): string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(string $slug): void
+    {
+        $this->slug = $slug;
     }
 }
