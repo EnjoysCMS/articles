@@ -1,0 +1,11 @@
+{
+    "name": "enjoyscms/articles",
+    "type": "enjoyscms-module",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Enjoyscms\\Articles\\": "src/"
+        }
+    },
+    "require": {}
+}

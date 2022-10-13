@@ -1,0 +1,8 @@
+* text=auto eol=lf
+
+.* export-ignore
+infection/ export-ignore
+build/ export-ignore
+phpunit.xml.dist export-ignore
+psalm.xml export-ignore
+tests/ export-ignore
