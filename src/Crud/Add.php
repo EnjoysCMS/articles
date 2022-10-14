@@ -7,18 +7,23 @@ namespace EnjoysCMS\Articles\Crud;
 
 
 use DI\Container;
+use DI\DependencyException;
+use DI\NotFoundException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use Enjoys\Forms\Form;
 use Enjoys\Forms\Interfaces\RendererInterface;
+use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Core\Components\Helpers\Redirect;
 use EnjoysCMS\Core\Components\WYSIWYG\WYSIWYG;
 use EnjoysCMS\Core\Components\WYSIWYG\WysiwygConfig;
-use EnjoysCMS\Articles\Config;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 final class Add
 {
@@ -31,18 +36,27 @@ final class Add
     ) {
     }
 
+    /**
+     * @throws ORMException
+     * @throws RuntimeError
+     * @throws LoaderError
+     * @throws DependencyException
+     * @throws OptimisticLockException
+     * @throws SyntaxError
+     * @throws NotFoundException
+     */
     public function __invoke(Container $container): array
     {
         $paramsWysiwyg = $this->config->getModuleConfig()->get('WYSIWYG');
 
-        $_annotation = new WysiwygConfig($paramsWysiwyg['annotation'] ?? '');
+        $_annotation = new WysiwygConfig($paramsWysiwyg['annotation'] ?? null);
         $wysiwygAnnotation = WYSIWYG::getInstance($_annotation->getEditorName(), $container);
-        $wysiwygAnnotation->getEditor()->setTwigTemplate($_annotation->getTemplate());
+        $wysiwygAnnotation?->getEditor()->setTwigTemplate($_annotation->getTemplate());
 
-        $_body = new WysiwygConfig($paramsWysiwyg['body'] ?? '');
+        $_body = new WysiwygConfig($paramsWysiwyg['body'] ?? null);
         $wysiwygBody = WYSIWYG::getInstance($_body->getEditorName(), $container);
-        $wysiwygBody->getEditor()->setTwigTemplate($_body->getTemplate());
-//dd($wysiwygAnnotation, $wysiwygBody);
+        $wysiwygBody?->getEditor()->setTwigTemplate($_body->getTemplate());
+
         $form = $this->getForm();
 
         if ($form->isSubmitted()) {
@@ -52,8 +66,8 @@ final class Add
         $this->renderer->setForm($form);
         return [
             'wysiwyg' => [
-                $wysiwygAnnotation->selector('#annotation'),
-                $wysiwygBody->selector('#body'),
+                $wysiwygAnnotation?->selector('#annotation'),
+                $wysiwygBody?->selector('#body'),
             ],
             'form' => $this->renderer
         ];

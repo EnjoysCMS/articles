@@ -1,5 +1,5 @@
 WYSIWYG:
-  annotation:
-    summernote:
-  body:
-    summernote:
+#  annotation:
+#    summernote: #template path
+#  body:
+#    tinymce: #template path
