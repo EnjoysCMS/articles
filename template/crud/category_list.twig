@@ -1,0 +1,91 @@
+{% extends '@a/layout.twig' %}
+{% block content %}
+
+    {% do asset('js', [
+        module.path ~ '/template/assets/js/nestable/jquery.nestable.js'
+    ]) %}
+
+
+    {% do asset('css', [
+        module.path ~ '/template/assets/css/nestable/nestable.css'
+    ]) %}
+
+
+    {% macro recursiveCategory(category) %}
+        {% import _self as self %}
+
+        <li class="dd-item dd3-item" data-id="{{ category.getId }}">
+            <div class="dd-handle dd3-handle{% if not category.isStatus %} bg-danger{% endif %}"></div>
+            <div class="dd3-content{% if not category.isStatus %} bg-danger{% endif %}">
+                {{ category.getTitle }}
+                <span class="small">
+                    <a href="{{ path('articles/category/view', {"slug": category.slug}) }}"><i class="fa fa-external-link-square-alt"></i></a>
+                </span>
+                <div class="small text-dark">
+                    <a href="{{ path('articles/admin/category/delete', {"id": category.id}) }}">[удалить]</a>
+                    <a href="{{ path('articles/admin/category/edit', {"id": category.id}) }}">[редактировать]</a>
+                    <a href="{{ path('articles/admin/category/add', {"parent": category.id}) }}">[добавить]</a>
+                </div>
+
+            </div>
+            {% if category.getChildren|length %}
+                <ol class="dd-list">
+                    {% for child in category.getChildren %}
+                        {{ self.recursiveCategory(child) }}
+                    {% endfor %}
+                </ol>
+            {% endif %}
+        </li>
+    {% endmacro %}
+
+    {% from _self import recursiveCategory %}
+
+    <section class="content">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Категории</h2>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                <a href="{{ url('articles/admin/category/add') }}" class="btn btn-primary btn-sm mb-3">Добавить
+                    категорию</a>
+
+                {{ form|raw }}
+
+                <div class="dd myadmin-dd-empty" id="nestable">
+                    <ol class="dd-list">
+                        {% for category in categories %}
+                            {{ recursiveCategory(category) }}
+                        {% endfor %}
+                    </ol>
+                </div>
+            </div>
+            <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+    </section>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // Nestable
+            var updateOutput = function (e) {
+                var list = e.length ? e : $(e.target),
+                    output = list.data('output');
+                if (window.JSON) {
+                    output.val(window.JSON.stringify(list.nestable('serialize'))); //, null, 2));
+                } else {
+                    output.val('JSON browser support required for this demo.');
+                }
+            };
+
+            $('#nestable').nestable({
+                group: 1,
+                expanded: false
+            }).on('change', updateOutput);
+
+
+            updateOutput($('#nestable').data('output', $('#nestable-output')));
+
+        });
+    </script>
+{% endblock %}

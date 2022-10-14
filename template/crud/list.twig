@@ -17,7 +17,11 @@
 
                 <ul>
                     {% for article in articles %}
-                        <li><h4>{{ article.title }} </h4> <a href="{{ path('article/view', {'slug': article.slug}) }}">link</a> </li>
+                        <li><h4>{{ article.title }} </h4>
+                            <a href="{{ path('article/view', {'slug': article.slug}) }}">link</a>
+                            <a href="{{ path('articles/admin/edit', {'id': article.id}) }}">edit</a>
+                            <a href="{{ path('articles/admin/delete', {'id': article.id}) }}">remove</a>
+                        </li>
                     {% endfor %}
                 </ul>
             </div>

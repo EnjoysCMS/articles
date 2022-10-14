@@ -1,0 +1,6 @@
+{
+    "license": "MIT",
+    "dependencies": {
+        "urlify": "^0.3.6"
+    }
+}

@@ -7,15 +7,15 @@ namespace EnjoysCMS\Articles\Controllers;
 
 
 use DI\Container;
-use EnjoysCMS\Articles\Crud\Add;
+use EnjoysCMS\Articles\Crud\ArticleAdd;
+use EnjoysCMS\Articles\Crud\ArticleDelete;
+use EnjoysCMS\Articles\Crud\ArticleEdit;
 use EnjoysCMS\Articles\Crud\ArticlesList;
 use EnjoysCMS\Module\Admin\AdminBaseController;
-use EnjoysCMS\Module\Pages\Admin\Index;
-use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
-final class CrudControllers extends AdminBaseController
+final class ArticleCrudControllers extends AdminBaseController
 {
 
     public function __construct(private Container $container, ResponseInterface $response = null)
@@ -52,7 +52,47 @@ final class CrudControllers extends AdminBaseController
         return $this->responseText(
             $this->getTwig()->render(
                 '@articles/crud/add.twig',
-                $this->container->call(Add::class)
+                $this->container->call(ArticleAdd::class)
+            )
+        );
+    }
+
+    #[Route(
+        path: '/articles/admin/edit@{id}',
+        name: 'articles/admin/edit',
+        requirements: [
+            'id' => '\d+'
+        ],
+        options: [
+            'comment' => '[Admin] Редактировать статью'
+        ]
+    )]
+    public function edit(): ResponseInterface
+    {
+        return $this->responseText(
+            $this->getTwig()->render(
+                '@articles/crud/edit.twig',
+                $this->container->call(ArticleEdit::class)
+            )
+        );
+    }
+
+    #[Route(
+        path: '/articles/admin/delete@{id}',
+        name: 'articles/admin/delete',
+        requirements: [
+            'id' => '\d+'
+        ],
+        options: [
+            'comment' => '[Admin] Удалить статью'
+        ]
+    )]
+    public function delete(): ResponseInterface
+    {
+        return $this->responseText(
+            $this->getTwig()->render(
+                '@articles/crud/remove.twig',
+                $this->container->call(ArticleDelete::class)
             )
         );
     }

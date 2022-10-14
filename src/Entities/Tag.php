@@ -8,7 +8,7 @@ namespace EnjoysCMS\Articles\Entities;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="TagRepository")
  * @ORM\Table(name="articles_tags")
  */
 class Tag

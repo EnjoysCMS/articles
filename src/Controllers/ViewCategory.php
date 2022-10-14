@@ -20,14 +20,14 @@ use Symfony\Component\Routing\Annotation\Route;
 use Twig\Environment;
 
 #[Route(
-    path: 'article/{slug}.html',
-    name: 'article/view',
+    path: 'articles/{slug}',
+    name: 'articles/category/view',
     requirements: ['slug' => '[^.]+'],
     options: [
-        'comment' => 'Просмотр статей в public'
+        'comment' => 'Просмотр категорий в public'
     ]
 )]
-final class ViewArticle extends BaseController
+final class ViewCategory extends BaseController
 {
     /**
      * @throws NoResultException

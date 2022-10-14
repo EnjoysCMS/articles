@@ -12,10 +12,14 @@ use DI\NotFoundException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
+use Enjoys\Forms\Exception\ExceptionRule;
 use Enjoys\Forms\Form;
 use Enjoys\Forms\Interfaces\RendererInterface;
+use Enjoys\Forms\Rules;
 use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Article;
+use EnjoysCMS\Articles\Entities\Category;
+use EnjoysCMS\Articles\Entities\Tag;
 use EnjoysCMS\Core\Components\Helpers\Redirect;
 use EnjoysCMS\Core\Components\WYSIWYG\WYSIWYG;
 use EnjoysCMS\Core\Components\WYSIWYG\WysiwygConfig;
@@ -25,7 +29,7 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
-final class Add
+final class ArticleAdd
 {
     public function __construct(
         private EntityManager $em,
@@ -44,6 +48,7 @@ final class Add
      * @throws OptimisticLockException
      * @throws SyntaxError
      * @throws NotFoundException
+     * @throws ExceptionRule
      */
     public function __invoke(Container $container): array
     {
@@ -75,15 +80,28 @@ final class Add
 
     /**
      * @return Form
+     * @throws ExceptionRule
      */
     protected function getForm(): Form
     {
         $form = new Form();
-        $form->text('title', 'Название (заголовок)');
-        $form->text('slug', 'Уникальное имя для url')->setDescription('Используется в URL');
+        $form->setDefaults([
+            'publish' => (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s')
+        ]);
+        $form->select('category', 'Категория')
+            ->fill(
+                ['0' => '_без категории_'] + $this->em->getRepository(
+                    Category::class
+                )->getFormFillArray()
+            )
+            ->addRule(Rules::REQUIRED);
+        $form->text('title', 'Название (заголовок)')->addRule(Rules::REQUIRED);
+        $form->text('slug', 'Уникальное имя для url')->addRule(Rules::REQUIRED)->setDescription('Используется в URL');
         $form->text('subtitle', 'Подзаголовок');
         $form->textarea('annotation', 'Аннотация');
-        $form->textarea('body', 'Статья');
+        $form->textarea('body', 'Статья')->addRule(Rules::REQUIRED);
+        $form->datetimelocal('publish', 'Дата публикации');
+        $form->text('tags', 'Теги');
         $form->submit('save', 'Сохранить');
         return $form;
     }
@@ -91,10 +109,16 @@ final class Add
     /**
      * @throws OptimisticLockException
      * @throws ORMException
+     * @throws \Exception
      */
     private function doSave()
     {
+        $category = $this->request->getParsedBody()['category'] ?? 0;
+//        $this->cookie->set('__catalog__last_category_when_add_product', $categoryId);
+
         $article = new Article();
+
+        $article->setCategory($this->em->getRepository(Category::class)->find($category));
         $article->setStatus(true);
         $article->setTitle(
             $this->request->getParsedBody()['title'] ?? throw new \InvalidArgumentException('Not set title')
@@ -107,6 +131,26 @@ final class Add
         $article->setBody(
             $this->request->getParsedBody()['body'] ?? throw new \InvalidArgumentException('Not set body of article')
         );
+
+        $publish = $this->request->getParsedBody()['publish'];
+        $article->setPublished($publish ? new \DateTimeImmutable($publish) : null);
+
+        $tags = array_filter(
+            array_unique(array_map('trim', explode(',', $this->request->getParsedBody()['tags']))),
+            fn($item) => !empty($item)
+        );
+
+        foreach ($tags as $tag) {
+            if ($tag instanceof Tag) {
+                $article->addTag($tag);
+                continue;
+            }
+            /** @var Tag $tagEntity */
+            $tagEntity = $this->em->getRepository(Tag::class)->findOneBy(['title' => $tag]) ?? new Tag();
+            $tagEntity->setTitle($tag);
+            $this->em->persist($tagEntity);
+            $article->addTag($tagEntity);
+        }
 
         $this->em->persist($article);
         $this->em->flush();

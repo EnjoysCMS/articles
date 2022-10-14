@@ -1,0 +1,47 @@
+{% extends '@a/layout.twig' %}
+{% block content %}
+    {% do asset('js', [
+        'modules/pages/node_modules/urlify/dist/urlify.js'
+    ]) %}
+
+    <script>
+        let urlify = Urlify.create({
+            spaces: "-",
+            trim: true,
+            toLower: true
+        });
+
+        $(document).ready(
+            function () {
+                $("#title").on('click keyup', function () {
+                    $("#slug").val(urlify($(this).prop('value')));
+                });
+            }
+        );
+    </script>
+
+    <section class="content">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Редактировать статью</h2>
+            </div>
+            <!-- /.card-header -->
+            <div class="card-body">
+                {{ form.output|raw }}
+            </div>
+            <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+
+    </section>
+{% endblock %}
+
+{% block scripts %}
+    {% if wysiwyg is iterable %}
+        {% for editor in wysiwyg %}
+            {{ editor|raw }}
+        {% endfor %}
+    {% else %}
+        {{ wysiwyg|raw }}
+    {% endif %}
+{% endblock %}

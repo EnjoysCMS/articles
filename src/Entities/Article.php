@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 
 /**
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="ArticleRepository")
  * @ORM\Table(name="articles_list")
  */
 class Article
@@ -76,9 +76,9 @@ class Article
     private Collection $tags;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Category")
+     * @ORM\ManyToOne(targetEntity="Category")
      */
-    private Collection $categories;
+    private ?Category $category;
 
     /**
      * @ORM\Column(type="integer", options={"default": 0})
@@ -88,7 +88,6 @@ class Article
     public function __construct()
     {
         $this->tags = new ArrayCollection();
-        $this->categories = new ArrayCollection();
     }
 
     public function getId()
@@ -191,22 +190,30 @@ class Article
     }
 
 
-    public function getCategories(): Collection
+    public function getCategory(): ?Category
     {
-        return $this->categories;
+        return $this->category;
     }
 
-    public function addCategory(Category $category): void
+    public function setCategory(?Category $category): void
     {
-        if ($this->tags->contains($category)) {
-            return;
+        $this->category = $category;
+    }
+
+//    public function getSlug(): string
+//    {
+//        return $this->slug;
+//    }
+    public function getSlug(string $lastPartSlug = null): string
+    {
+        $category = $this->getCategory();
+
+        $slug = null;
+        if ($category instanceof Category) {
+            $slug = $category->getSlug() . '/';
         }
-        $this->categories->add($category);
-    }
 
-    public function getSlug(): string
-    {
-        return $this->slug;
+        return $slug . ($lastPartSlug ?? $this->slug);
     }
 
     public function setSlug(string $slug): void
