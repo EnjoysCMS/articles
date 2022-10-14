@@ -63,6 +63,17 @@ class Article
     /**
      * @ORM\Column(type="string", nullable=true)
      */
+    private ?string $source = null;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private ?string $author = null;
+
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
     private ?string $annotation = null;
 
     /**
@@ -219,5 +230,25 @@ class Article
     public function setSlug(string $slug): void
     {
         $this->slug = $slug;
+    }
+
+    public function getSource(): ?string
+    {
+        return $this->source;
+    }
+
+    public function setSource(?string $source): void
+    {
+        $this->source = $source;
+    }
+
+    public function getAuthor(): ?string
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?string $author): void
+    {
+        $this->author = $author;
     }
 }

@@ -137,6 +137,8 @@ final class ArticleEdit
             ->setDescription('Используется в URL')
         ;
         $form->text('subtitle', 'Подзаголовок');
+        $form->text('author', 'Автор');
+        $form->text('source', 'Источник');
         $form->textarea('annotation', 'Аннотация');
         $form->textarea('body', 'Статья')->addRule(Rules::REQUIRED);
         $form->datetimelocal('publish', 'Дата публикации');
@@ -161,7 +163,9 @@ final class ArticleEdit
         $this->article->setSlug(
             $this->request->getParsedBody()['slug'] ?? throw new \InvalidArgumentException('Not set slug')
         );
-        $this->article->setSubTitle($this->request->getParsedBody()['subtitle'] ?? null);
+        $this->article->setSubTitle($this->request->getParsedBody()['subtitle'] ? $this->request->getParsedBody()['subtitle'] : null);
+        $this->article->setAuthor($this->request->getParsedBody()['author'] ? $this->request->getParsedBody()['author'] : null);
+        $this->article->setSource($this->request->getParsedBody()['source'] ? $this->request->getParsedBody()['source'] : null);
         $this->article->setAnnotation($this->request->getParsedBody()['title'] ?? '');
         $this->article->setBody(
             $this->request->getParsedBody()['body'] ?? throw new \InvalidArgumentException('Not set body of article')
