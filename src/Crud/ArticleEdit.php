@@ -108,16 +108,19 @@ final class ArticleEdit
         ;
 
         $form->select('category', 'Категория')
+            ->addRule(Rules::REQUIRED)
             ->fill(
                 ['0' => '_без категории_'] + $this->em->getRepository(
                     Category::class
                 )->getFormFillArray()
             )
-            ->addRule(Rules::REQUIRED)
         ;
         $form->text('title', 'Название (заголовок)')->addRule(Rules::REQUIRED);
         $form->text('slug', 'Уникальное имя для url')
             ->addRule(Rules::REQUIRED)
+            ->addRule(Rules::CALLBACK, '/ - нельзя использовать', function (){
+                return !preg_match('/\//', $this->request->getParsedBody()['slug'] ?? '');
+            })
             ->addRule(Rules::CALLBACK, 'Использовать нельзя, уже используется', function () {
                 $article = $this->em->getRepository(Article::class)->getFindByUrlBuilder(
                     $this->request->getParsedBody()['slug'] ?? '',

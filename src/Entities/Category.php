@@ -107,8 +107,11 @@ class Category
     }
 
 
-    public function getSlug(): string
+    public function getSlug(bool $fool = true): string
     {
+        if ($fool === false){
+            return $this->slug;
+        }
         $parent = $this->getParent();
         if ($parent === null) {
             return $this->slug;

@@ -17,12 +17,8 @@ use Enjoys\Forms\Form;
 use Enjoys\Forms\Interfaces\RendererInterface;
 use Enjoys\Forms\Rules;
 use EnjoysCMS\Articles\Config;
-use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\Category;
-use EnjoysCMS\Articles\Entities\Tag;
 use EnjoysCMS\Core\Components\Helpers\Redirect;
-use EnjoysCMS\Core\Components\WYSIWYG\WYSIWYG;
-use EnjoysCMS\Core\Components\WYSIWYG\WysiwygConfig;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Error\LoaderError;
@@ -80,16 +76,31 @@ final class CategoryAdd
 
 
         $form->select('parent', 'Родительская категория')
+            ->addRule(Rules::REQUIRED)
             ->fill(
                 ['0' => '_без родительской категории_'] + $this->em->getRepository(
                     Category::class
                 )->getFormFillArray()
             )
-            ->addRule(Rules::REQUIRED)
         ;
 
         $form->text('title', 'Название (заголовок)')->addRule(Rules::REQUIRED);
-        $form->text('slug', 'Уникальное имя для url')->addRule(Rules::REQUIRED)->setDescription('Используется в URL');
+        $form->text('slug', 'Уникальное имя для url')
+            ->addRule(Rules::REQUIRED)
+            ->addRule(Rules::CALLBACK, '/ - нельзя использовать', function (){
+                return !preg_match('/\//', $this->request->getParsedBody()['slug'] ?? '');
+            })
+            ->addRule(Rules::CALLBACK, 'Такое уже есть...нельзя)))', function (){
+                return is_null($this->em->getRepository(Category::class)->findOneBy(
+                    [
+                        'slug' => $this->request->getParsedBody()['slug'] ?? '',
+                        'parent' => $this->em->getRepository(Category::class)->find(
+                            $this->request->getParsedBody()['parent'] ?? null
+                        )
+                    ]
+                ));
+            })
+            ->setDescription('Используется в URL');
         $form->textarea('description', 'Описание');
         $form->submit('save', 'Сохранить');
         return $form;
