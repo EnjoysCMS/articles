@@ -13,7 +13,6 @@ use EnjoysCMS\Articles\Entities\ArticleRepository;
 use EnjoysCMS\Core\BaseController;
 use EnjoysCMS\Core\Components\Helpers\Setting;
 use EnjoysCMS\Core\Exception\NotFoundException;
-use EnjoysCMS\Module\Pages\Entities\Page;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -43,11 +42,12 @@ final class ViewArticle extends BaseController
             $twig->render(
                 '@m/articles/view.twig',
                 [
-//                    '_title' => sprintf(
-//                        '%2$s - %1$s',
-//                        Setting::get('sitename'),
-//                        $page->getTitle()
-//                    ),
+                    '_title' => sprintf(
+                        '%2$s - %3$s - %1$s',
+                        Setting::get('sitename'),
+                        $article->getTitle(),
+                        $article->getCategory()?->getFullTitle(reverse: true) ?? 'Статьи'
+                    ),
                     'article' => $article
                 ]
             )

@@ -27,6 +27,8 @@ final class ArticleRepository extends EntityRepository
         $dql = $this->getFindByUrlBuilder($slug, $category);
 
         $dql->andWhere('a.status = true');
+        $dql->andWhere('a.published <= :published');
+        $dql->setParameter('published', new \DateTimeImmutable('now'));
 
         return $dql->getQuery()->getOneOrNullResult();
     }

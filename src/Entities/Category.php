@@ -170,4 +170,44 @@ class Category
         return new ArrayCollection(iterator_to_array($iterator));
     }
 
+    public function getFullTitle(string $separator = " / ", bool $reverse = false): string
+    {
+        $parent = $this->getParent();
+        if ($parent === null) {
+            return $this->getTitle();
+        }
+
+        if ($reverse === true) {
+            return $this->getTitle() . $separator . $parent->getFullTitle($separator, true);
+        }
+        return $parent->getFullTitle($separator) . $separator . $this->getTitle();
+    }
+
+    public function getOnlyParentFullTitle($separator = " / "): string
+    {
+        $parent = $this->getParent();
+
+        if ($parent === null) {
+            return '';
+        }
+
+        return $parent->getFullTitle($separator);
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        $parent = $this->getParent();
+        $data = [
+            [
+                'slug' => $this->getSlug(),
+                'title' => $this->getTitle(),
+            ]
+        ];
+        if ($parent === null) {
+            return $data;
+        }
+
+        return array_merge($parent->getBreadcrumbs(), $data);
+    }
+
 }
