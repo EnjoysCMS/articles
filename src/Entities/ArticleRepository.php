@@ -7,10 +7,18 @@ namespace EnjoysCMS\Articles\Entities;
 
 
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 
 final class ArticleRepository extends EntityRepository
 {
+    public function getFindAllBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('a')
+            ->select('a', 'c')
+            ->leftJoin('a.category', 'c');
+    }
+
     public function findBySlug(string $slugs): ?Article
     {
         $slugs = explode('/', $slugs);
@@ -51,5 +59,52 @@ final class ArticleRepository extends EntityRepository
         ;
 
         return $dql;
+    }
+
+    public function findByCategory(Category $category)
+    {
+        return $this->getQueryFindByCategory($category)->getResult();
+    }
+
+    public function getQueryFindByCategory(?Category $category): Query
+    {
+
+        return $this->getQueryBuilderFindByCategory($category)->getQuery();
+    }
+
+    public function getQueryBuilderFindByCategory(?Category $category): QueryBuilder
+    {
+
+        if ($category === null) {
+            return $this->getFindAllBuilder()->where('a.category IS NULL');
+        }
+
+        return $this->getFindAllBuilder()
+            ->where('a.category = :category')
+            ->setParameter('category', $category);
+    }
+
+    public function getFindByCategoriesIdsDQL($categoryIds): QueryBuilder
+    {
+        $qb = $this->getFindAllBuilder();
+
+        $qb->where('a.category IN (:category)')
+            ->setParameter('category', $categoryIds);
+
+        if (false !== $null_key = array_search(null, $categoryIds)) {
+            $qb->orWhere('a.category IS NULL');
+        }
+
+        return $qb;
+    }
+
+    public function getFindByCategoriesIdsQuery($categoryIds): Query
+    {
+        return $this->getFindByCategoriesIdsDQL($categoryIds)->getQuery();
+    }
+
+    public function findByCategoriesIds($categoryIds)
+    {
+        return $this->getFindByCategoriesIdsQuery($categoryIds)->getResult();
     }
 }
