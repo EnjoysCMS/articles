@@ -1,5 +1,5 @@
 WYSIWYG:
   annotation:
-    summernote: #template path
+#    summernote: #template path
   body:
     summernote: #template path

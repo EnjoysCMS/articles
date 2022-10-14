@@ -1,9 +1,17 @@
 {% extends '@a/layout.twig' %}
 {% block content %}
     {% do asset('js', [
-        'modules/pages/node_modules/urlify/dist/urlify.js'
+        'modules/articles/node_modules/urlify/dist/urlify.js',
+        'modules/articles/template/assets/js/bootstrap-tagsinput/bootstrap-tagsinput.js',
     ]) %}
-
+    {% do asset('css', [
+        'modules/articles/template/assets/js/bootstrap-tagsinput/bootstrap-tagsinput.css',
+    ]) %}
+    <script>
+        $('#tags').tagsinput({
+            tagClass: 'badge bg-dark'
+        });
+    </script>
     <script>
         let urlify = Urlify.create({
             spaces: "-",

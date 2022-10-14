@@ -19,6 +19,7 @@ use Enjoys\Forms\Interfaces\RendererInterface;
 use Enjoys\Forms\Rules;
 use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Article;
+use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\Tag;
 use EnjoysCMS\Core\Components\Helpers\Redirect;
 use EnjoysCMS\Core\Components\WYSIWYG\WYSIWYG;
@@ -88,15 +89,50 @@ final class ArticleEdit
         $form = new Form();
         $form->setDefaults([
             'title' => $this->article->getTitle(),
-            'slug' => $this->article->getSlug(),
+            'status' => [(int)$this->article->isStatus()],
+            'category' => $this->article->getCategory()?->getId(),
+            'slug' => $this->article->getSlug(fool: false),
             'subtitle' => $this->article->getSubTitle(),
             'annotation' => $this->article->getAnnotation(),
             'publish' => $this->article->getPublished()?->format('Y-m-d H:i:s'),
             'tags' => implode(', ', $this->article->getTags()->map(fn($tag) => $tag->getTitle())->toArray()),
             'body' => $this->article->getBody(),
         ]);
+
+        $form->checkbox('status', null)
+            ->addClass(
+                'custom-switch custom-switch-off-danger custom-switch-on-success',
+                Form::ATTRIBUTES_FILLABLE_BASE
+            )
+            ->fill([1 => 'Статус'])
+        ;
+
+        $form->select('category', 'Категория')
+            ->fill(
+                ['0' => '_без категории_'] + $this->em->getRepository(
+                    Category::class
+                )->getFormFillArray()
+            )
+            ->addRule(Rules::REQUIRED)
+        ;
         $form->text('title', 'Название (заголовок)')->addRule(Rules::REQUIRED);
-        $form->text('slug', 'Уникальное имя для url')->addRule(Rules::REQUIRED)->setDescription('Используется в URL');
+        $form->text('slug', 'Уникальное имя для url')
+            ->addRule(Rules::REQUIRED)
+            ->addRule(Rules::CALLBACK, 'Использовать нельзя, уже используется', function () {
+                $article = $this->em->getRepository(Article::class)->getFindByUrlBuilder(
+                    $this->request->getParsedBody()['slug'] ?? '',
+                    $this->em->getRepository(Category::class)->find(
+                        $this->request->getParsedBody()['category'] ?? 0
+                    )
+                )->getQuery()->getOneOrNullResult();
+
+                if ($article === null) {
+                    return true;
+                }
+                return $article->getId() === $this->article->getId();
+            })
+            ->setDescription('Используется в URL')
+        ;
         $form->text('subtitle', 'Подзаголовок');
         $form->textarea('annotation', 'Аннотация');
         $form->textarea('body', 'Статья')->addRule(Rules::REQUIRED);
@@ -113,7 +149,9 @@ final class ArticleEdit
      */
     private function doSave(): void
     {
-        $this->article->setStatus(true);
+        $category = $this->request->getParsedBody()['category'] ?? 0;
+        $this->article->setCategory($this->em->getRepository(Category::class)->find($category));
+        $this->article->setStatus((bool)($this->request->getParsedBody()['status'] ?? false));
         $this->article->setTitle(
             $this->request->getParsedBody()['title'] ?? throw new \InvalidArgumentException('Not set title')
         );

@@ -12,6 +12,7 @@ use EnjoysCMS\Articles\Crud\ArticleDelete;
 use EnjoysCMS\Articles\Crud\ArticleEdit;
 use EnjoysCMS\Articles\Crud\ArticlesList;
 use EnjoysCMS\Articles\Crud\CategoryAdd;
+use EnjoysCMS\Articles\Crud\CategoryEdit;
 use EnjoysCMS\Articles\Crud\CategoryList;
 use EnjoysCMS\Module\Admin\AdminBaseController;
 use Psr\Http\Message\ResponseInterface;

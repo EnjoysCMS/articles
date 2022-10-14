@@ -1,9 +1,32 @@
 {% extends '@a/layout.twig' %}
 {% block content %}
     {% do asset('js', [
-        'modules/pages/node_modules/urlify/dist/urlify.js'
+        'modules/articles/node_modules/urlify/dist/urlify.js',
+        'modules/articles/template/assets/js/bootstrap-tagsinput/bootstrap-tagsinput.js',
+        'modules/articles/node_modules/typeahead.js/dist/typeahead.jquery.min.js'
     ]) %}
-
+    {% do asset('css', [
+        'modules/articles/template/assets/js/bootstrap-tagsinput/bootstrap-tagsinput.css',
+        'modules/articles/template/assets/js/bootstrap-tagsinput/bootstrap-tagsinput-typeahead.css'
+    ]) %}
+    <script>
+        $('#tags').tagsinput({
+            tagClass: 'badge bg-dark',
+            typeaheadjs: {
+                name: 'tags',
+                displayKey: 'name',
+                valueKey: 'name',
+                source: function(query) {
+                    let result =  $.get("{{ path('articles/find-tag') }}?search-value="+ query);
+                    console.log(result)
+                    // return $.map(list, function(tag) {
+                    //     console.log(tag)
+                    //     return { name: tag }
+                    // });
+                }
+            }
+        });
+    </script>
     <script>
         let urlify = Urlify.create({
             spaces: "-",

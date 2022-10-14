@@ -200,12 +200,12 @@ class Article
         $this->category = $category;
     }
 
-//    public function getSlug(): string
-//    {
-//        return $this->slug;
-//    }
-    public function getSlug(string $lastPartSlug = null): string
+    public function getSlug(string $lastPartSlug = null, bool $fool = true): string
     {
+        if ($fool === false){
+            return $this->slug;
+        }
+
         $category = $this->getCategory();
 
         $slug = null;

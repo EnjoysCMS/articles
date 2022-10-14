@@ -12,6 +12,7 @@ use DI\NotFoundException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
+use Enjoys\Forms\AttributeFactory;
 use Enjoys\Forms\Exception\ExceptionRule;
 use Enjoys\Forms\Form;
 use Enjoys\Forms\Interfaces\RendererInterface;
@@ -94,14 +95,28 @@ final class ArticleAdd
                     Category::class
                 )->getFormFillArray()
             )
-            ->addRule(Rules::REQUIRED);
+            ->addRule(Rules::REQUIRED)
+        ;
         $form->text('title', 'Название (заголовок)')->addRule(Rules::REQUIRED);
-        $form->text('slug', 'Уникальное имя для url')->addRule(Rules::REQUIRED)->setDescription('Используется в URL');
+        $form->text('slug', 'Уникальное имя для url')
+            ->addRule(Rules::REQUIRED)
+            ->addRule(Rules::CALLBACK, 'Использовать нельзя, уже используется', function () {
+                return is_null(
+                    $this->em->getRepository(Article::class)->getFindByUrlBuilder(
+                        $this->request->getParsedBody()['slug'] ?? '',
+                        $this->em->getRepository(Category::class)->find(
+                            $this->request->getParsedBody()['category'] ?? 0
+                        )
+                    )->getQuery()->getOneOrNullResult()
+                );
+            })
+            ->setDescription('Используется в URL')
+        ;
         $form->text('subtitle', 'Подзаголовок');
         $form->textarea('annotation', 'Аннотация');
         $form->textarea('body', 'Статья')->addRule(Rules::REQUIRED);
         $form->datetimelocal('publish', 'Дата публикации');
-        $form->text('tags', 'Теги');
+        $form->text('tags', 'Теги')->addAttribute(AttributeFactory::create('data-role', 'tagsinput'));
         $form->submit('save', 'Сохранить');
         return $form;
     }
@@ -124,7 +139,8 @@ final class ArticleAdd
             $this->request->getParsedBody()['title'] ?? throw new \InvalidArgumentException('Not set title')
         );
         $article->setSlug(
-            $this->request->getParsedBody()['slug'] ?? throw new \InvalidArgumentException('Not set slug')
+            $this->request->getParsedBody()['slug']
+            ?? throw new \InvalidArgumentException('Not set slug')
         );
         $article->setSubTitle($this->request->getParsedBody()['subtitle'] ?? null);
         $article->setAnnotation($this->request->getParsedBody()['title'] ?? '');

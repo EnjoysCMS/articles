@@ -122,7 +122,6 @@ class Category
         $this->slug = $slug;
     }
 
-
     public function setParent(Category $parent = null): void
     {
         $this->parent = $parent;
@@ -131,14 +130,9 @@ class Category
     /**
      * @return Category|null
      */
-    public function getParent()
+    public function getParent(): ?Category
     {
         return $this->parent;
-    }
-
-    public function addClosure(CategoryClosure $closure): void
-    {
-        $this->closures[] = $closure;
     }
 
     public function setLevel($level): void
