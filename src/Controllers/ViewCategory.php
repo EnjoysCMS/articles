@@ -16,6 +16,7 @@ use EnjoysCMS\Articles\Entities\ArticleRepository;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\CategoryRepository;
 use EnjoysCMS\Core\BaseController;
+use EnjoysCMS\Core\Components\Pagination\Pagination;
 use EnjoysCMS\Core\Exception\NotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -26,11 +27,17 @@ use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
 #[Route(
-    path: 'articles/{slug?}',
+    path: 'articles/{slug?}@{page}',
     name: 'articles/category/view',
-    requirements: ['slug' => '[^.]+'],
+    requirements: [
+        'slug' => '[^@]?+',
+        'page' => '\d+'
+    ],
     options: [
         'comment' => 'Просмотр категорий в public'
+    ],
+    defaults: [
+        'page' => 1,
     ]
 )]
 final class ViewCategory extends BaseController
@@ -46,6 +53,11 @@ final class ViewCategory extends BaseController
      */
     public function __invoke(EntityManager $em, Environment $twig, ServerRequestInterface $request, Config $config): ResponseInterface
     {
+        $pagination = new Pagination(
+            $request->getAttribute('page', 1),
+            $config->getModuleConfig()->get('perPageLimit', false)
+        );
+
         /** @var CategoryRepository $categoryRepository */
         /** @var ArticleRepository $articleRepository */
         $articleRepository = $em->getRepository(Article::class);
@@ -64,7 +76,12 @@ final class ViewCategory extends BaseController
             ->setParameter('published', new \DateTimeImmutable('now'))
             ->orderBy('a.published', 'desc');
 
+        $qb->setFirstResult($pagination->getOffset())->setMaxResults($pagination->getLimitItems());
+
+
         $paginator = new Paginator($qb);
+        $pagination->setTotalItems($paginator->count());
+
 //dd($paginator->getQuery());
         /** @var Article $article */
         return $this->responseText(
@@ -76,6 +93,7 @@ final class ViewCategory extends BaseController
 //                        Setting::get('sitename'),
 //                        $page->getTitle()
 //                    ),
+                    'pagination' => $pagination,
                     'articles' => $paginator->getIterator()
                 ]
             )

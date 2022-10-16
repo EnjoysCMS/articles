@@ -1,4 +1,5 @@
 showSubCategoryArticles: true
+perPageLimit: 3
 WYSIWYG:
   annotation:
 #    summernote: #template path
