@@ -25,6 +25,9 @@ class CategoryRepository extends ClosureTreeRepository
      */
     public function findByPath(?string $path)
     {
+        if ($path === null){
+            return null;
+        }
         $slugs = explode('/', $path);
         $first = array_shift($slugs);
         $alias = 'c';

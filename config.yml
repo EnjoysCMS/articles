@@ -1,3 +1,4 @@
+showSubCategoryArticles: true
 WYSIWYG:
   annotation:
 #    summernote: #template path

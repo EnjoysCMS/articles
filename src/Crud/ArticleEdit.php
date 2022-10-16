@@ -94,6 +94,8 @@ final class ArticleEdit
             'slug' => $this->article->getSlug(fool: false),
             'subtitle' => $this->article->getSubTitle(),
             'annotation' => $this->article->getAnnotation(),
+            'author' => $this->article->getAuthor(),
+            'source' => $this->article->getSource(),
             'publish' => $this->article->getPublished()?->format('Y-m-d H:i:s'),
             'tags' => implode(', ', $this->article->getTags()->map(fn($tag) => $tag->getTitle())->toArray()),
             'body' => $this->article->getBody(),
@@ -166,7 +168,7 @@ final class ArticleEdit
         $this->article->setSubTitle($this->request->getParsedBody()['subtitle'] ? $this->request->getParsedBody()['subtitle'] : null);
         $this->article->setAuthor($this->request->getParsedBody()['author'] ? $this->request->getParsedBody()['author'] : null);
         $this->article->setSource($this->request->getParsedBody()['source'] ? $this->request->getParsedBody()['source'] : null);
-        $this->article->setAnnotation($this->request->getParsedBody()['title'] ?? '');
+        $this->article->setAnnotation($this->request->getParsedBody()['annotation'] ?? '');
         $this->article->setBody(
             $this->request->getParsedBody()['body'] ?? throw new \InvalidArgumentException('Not set body of article')
         );

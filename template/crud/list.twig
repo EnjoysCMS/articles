@@ -15,15 +15,34 @@
                        href="{{ url('articles/admin/add') }}">Добавить новую статью</a>
                 {% endif %}
 
-                <ul>
+                <div class="list-group">
                     {% for article in articles %}
-                        <li><h4>{{ article.title }} </h4>
-                            <a href="{{ path('article/view', {'slug': article.slug}) }}">link</a>
-                            <a href="{{ path('articles/admin/edit', {'id': article.id}) }}">edit</a>
-                            <a href="{{ path('articles/admin/delete', {'id': article.id}) }}">remove</a>
-                        </li>
+                    <div class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1 font-weight-bold">
+                                {{ article.title }}
+                                <small>
+                                    <a href="{{ path('article/view', {'slug': article.slug}) }}">смотреть</a>
+                                    <a href="{{ path('articles/admin/edit', {'id': article.id}) }}">редактировать</a>
+                                    <a href="{{ path('articles/admin/delete', {'id': article.id}) }}">удалить</a>
+                                </small>
+                            </h5>
+                            <small>Дата публикации: {{ article.published.format('d.m.Y H:i') }}</small>
+                        </div>
+                        <p class="mb-1">{{ article.category.getFullTitle ?? 'без категории' }}</p>
+                        <small>{{ article.author ? '@' ~ article.author }} {{ article.source ? '[' ~ article.source ~ ']' }}</small>
+                    </div>
                     {% endfor %}
-                </ul>
+                </div>
+
+
+{#                        <li><h4>{{ article.title }} </h4>#}
+{#                            <a href="{{ path('article/view', {'slug': article.slug}) }}">link</a>#}
+{#                            <a href="{{ path('articles/admin/edit', {'id': article.id}) }}">edit</a>#}
+{#                            <a href="{{ path('articles/admin/delete', {'id': article.id}) }}">remove</a>#}
+{#                        </li>#}
+
+{#                </ul>#}
             </div>
             <!-- /.card-body -->
         </div>
