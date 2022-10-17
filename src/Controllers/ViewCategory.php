@@ -27,16 +27,17 @@ use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
 #[Route(
-    path: 'articles/{slug?}@{page}',
+    path: 'articles/{slug}@{page}',
     name: 'articles/category/view',
     requirements: [
-        'slug' => '[^@]?+',
+        'slug' => '(\s*|[^@]+)',
         'page' => '\d+'
     ],
     options: [
         'comment' => 'Просмотр категорий в public'
     ],
     defaults: [
+        'slug' => null,
         'page' => 1,
     ]
 )]
