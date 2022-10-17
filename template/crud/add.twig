@@ -42,7 +42,25 @@
             }
         );
     </script>
+    <script>
+        $(document).ready(function(){
+            $("#inputImage").on('click', function() {
+                let width = 950;
+                let height = 420;
+                let params = [];
+                params.push('height=' + height);
+                params.push('width=' + width);
+                params.push('left=' + (screen.width - width) / 2);
+                params.push('top=' + ((screen.height - height) / 2) - 50 );
 
+                window.open('{{ path('elfinder/popup') }}', 'FileBrowser', params.join(','));
+            });
+        });
+
+        function processFile(file){
+            $("#img").val(file.url);
+        }
+    </script>
     <section class="content">
         <div class="card">
             <div class="card-header">

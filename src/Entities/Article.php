@@ -96,6 +96,11 @@ class Article
      */
     private int $views = 0;
 
+    /**
+     * @ORM\Column(type="string", nullable=true, name="main_image")
+     */
+    private ?string $mainImage = null;
+
     public function __construct()
     {
         $this->tags = new ArrayCollection();
@@ -250,5 +255,16 @@ class Article
     public function setAuthor(?string $author): void
     {
         $this->author = $author;
+    }
+
+    public function getMainImage(): ?string
+    {
+        return $this->mainImage;
+    }
+
+
+    public function setMainImage(?string $mainImage): void
+    {
+        $this->mainImage = $mainImage;
     }
 }

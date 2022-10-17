@@ -13,6 +13,8 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use Enjoys\Forms\AttributeFactory;
+use Enjoys\Forms\Elements\Html;
+use Enjoys\Forms\Elements\Text;
 use Enjoys\Forms\Exception\ExceptionRule;
 use Enjoys\Forms\Form;
 use Enjoys\Forms\Interfaces\RendererInterface;
@@ -120,6 +122,20 @@ final class ArticleAdd
         $form->text('source', 'Источник');
         $form->textarea('annotation', 'Аннотация');
         $form->textarea('body', 'Статья')->addRule(Rules::REQUIRED);
+        $form->group('Изображение')
+            ->add(
+                [
+                    new Text('img'),
+                    new Html(
+                        <<<HTML
+<a class="btn btn-default btn-outline btn-upload"  id="inputImage" title="Upload image file">
+    <span class="fa fa-upload "></span>
+</a>
+HTML
+                    ),
+                ]
+            )
+        ;
         $form->datetimelocal('publish', 'Дата публикации');
         $form->text('tags', 'Теги')->addAttribute(AttributeFactory::create('data-role', 'tagsinput'));
         $form->submit('save', 'Сохранить');
@@ -154,6 +170,9 @@ final class ArticleAdd
         $article->setBody(
             $this->request->getParsedBody()['body'] ?? throw new \InvalidArgumentException('Not set body of article')
         );
+
+        $article->setMainImage($this->request->getParsedBody()['img'] ? $this->request->getParsedBody()['img'] : null);
+
 
         $publish = $this->request->getParsedBody()['publish'];
         $article->setPublished($publish ? new \DateTimeImmutable($publish) : null);
