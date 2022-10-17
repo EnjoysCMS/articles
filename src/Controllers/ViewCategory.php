@@ -94,6 +94,10 @@ final class ViewCategory extends BaseController
 //                        Setting::get('sitename'),
 //                        $page->getTitle()
 //                    ),
+                    //todo: move to block
+                    'categories' => $categoryRepository->getChildNodes(criteria: [
+                        'status' => true
+                    ]),
                     'pagination' => $pagination,
                     'articles' => $paginator->getIterator()
                 ]
