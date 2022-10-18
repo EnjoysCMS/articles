@@ -15,6 +15,8 @@ use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\ArticleRepository;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\CategoryRepository;
+use EnjoysCMS\Articles\Entities\Tag;
+use EnjoysCMS\Articles\Entities\TagRepository;
 use EnjoysCMS\Core\BaseController;
 use EnjoysCMS\Core\Components\Pagination\Pagination;
 use EnjoysCMS\Core\Exception\NotFoundException;
@@ -27,21 +29,21 @@ use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
 #[Route(
-    path: 'articles/{slug}@{page}',
-    name: 'articles/category/view',
+    path: 'articles/tag:{tag}@{page}',
+    name: 'articles/tag/view',
     requirements: [
-        'slug' => '(\s*|[^@]+)',
+        'tag' => '([^@]+)',
         'page' => '\d+'
     ],
     options: [
-        'comment' => 'Просмотр категорий в public'
+        'comment' => 'Просмотр тегов в public'
     ],
     defaults: [
-        'slug' => null,
         'page' => 1,
-    ]
+    ],
+    priority: 1
 )]
-final class ViewCategory extends BaseController
+final class ViewTag extends BaseController
 {
     /**
      * @throws NoResultException
@@ -63,24 +65,17 @@ final class ViewCategory extends BaseController
             $config->getModuleConfig()->get('perPageLimit', false)
         );
 
-        /** @var CategoryRepository $categoryRepository */
+        /** @var TagRepository $categoryRepository */
         /** @var ArticleRepository $articleRepository */
         $articleRepository = $em->getRepository(Article::class);
-        $categoryRepository = $em->getRepository(Category::class);
+        $tagRepository = $em->getRepository(Tag::class);
+
+        $tag = $tagRepository->findOneBy([
+            'title' => $request->getAttribute('tag')
+        ]);
 
 
-        $category = $categoryRepository->findByPath($request->getAttribute('slug'));
-
-        if ($category === null && $request->getAttribute('slug') !== null) {
-            throw new NotFoundException();
-        }
-
-
-        if ($config->getModuleConfig()->get('showSubCategoryArticles', false)) {
-            $qb = $articleRepository->getFindByCategoriesIdsDQL($categoryRepository->getAllIds($category));
-        } else {
-            $qb = $articleRepository->getQueryBuilderFindByCategory($category);
-        }
+        $qb = $articleRepository->getQueryBuilderFindByTag($tag);
 
         $qb->andWhere('a.status = true')
             ->andWhere('a.published <= :published')
@@ -90,23 +85,20 @@ final class ViewCategory extends BaseController
 
         $qb->setFirstResult($pagination->getOffset())->setMaxResults($pagination->getLimitItems());
 
-
         $paginator = new Paginator($qb);
         $pagination->setTotalItems($paginator->count());
 
-//dd($paginator->getQuery());
         /** @var Article $article */
         return $this->responseText(
             $twig->render(
-                '@m/articles/category.twig',
+                '@m/articles/tag.twig',
                 [
 //                    '_title' => sprintf(
 //                        '%2$s - %1$s',
 //                        Setting::get('sitename'),
 //                        $page->getTitle()
 //                    ),
-
-                    'category' => $category,
+                    'tag' => $tag,
                     'pagination' => $pagination,
                     'articles' => $paginator->getIterator()
                 ]

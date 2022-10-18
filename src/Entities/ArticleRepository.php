@@ -107,4 +107,23 @@ final class ArticleRepository extends EntityRepository
     {
         return $this->getFindByCategoriesIdsQuery($categoryIds)->getResult();
     }
+
+    public function findByTag(Tag $tag)
+    {
+        return $this->getQueryFindByTag($tag)->getResult();
+    }
+
+    public function getQueryFindByTag(Tag $tag): Query
+    {
+
+        return $this->getQueryBuilderFindByTag($tag)->getQuery();
+    }
+
+    public function getQueryBuilderFindByTag(Tag $tag): QueryBuilder
+    {
+        return $this->getFindAllBuilder()
+            ->leftJoin('a.tags', 't')
+            ->andWhere('t = :tag')
+            ->setParameter('tag', $tag);
+    }
 }

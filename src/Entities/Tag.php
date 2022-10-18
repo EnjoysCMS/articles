@@ -40,4 +40,9 @@ class Tag
     {
         $this->title = $title;
     }
+
+    public function __toString(): string
+    {
+        return $this->title;
+    }
 }
