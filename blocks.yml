@@ -1,0 +1,14 @@
+EnjoysCMS\Articles\Blocks\Recent:
+  name: Недавние статьи (articles)
+  options:
+    template:
+      value: '../modules/articles/template/blocks/recent.twig'
+      name: Путь до template
+      description: Обязательно
+    limit:
+      value: 5
+      name: Кол-во записей (статей)
+      description: Какое кол-во статей выводить в блок
+    cacheTime:
+      value: 0
+      name: Время кэширования в сек, 0 - не кэшировать
