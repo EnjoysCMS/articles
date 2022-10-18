@@ -71,7 +71,7 @@ final class ViewCategory extends BaseController
 
         $category = $categoryRepository->findByPath($request->getAttribute('slug'));
 
-        if ($category === null && $request->getAttribute('slug') !== null) {
+        if ($category === null && !empty($request->getAttribute('slug'))) {
             throw new NotFoundException();
         }
 

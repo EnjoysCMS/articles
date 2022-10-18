@@ -2,7 +2,7 @@
     <h5 class="mb-4">Популярные теги</h5>
     <div class="tags-box">
         {% for tag in tags %}
-        <a href="" class="badge bg-dark fs-6 my-1 rounded-0">{{ tag.title }}</a>
+        <a href="{{ path('articles/tag/view', {'tag': tag.title}) }}" class="badge bg-dark fs-6 my-1 rounded-0">{{ tag.title }}</a>
         {% endfor %}
     </div>
 </div>
