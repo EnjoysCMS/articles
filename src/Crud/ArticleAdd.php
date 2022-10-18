@@ -166,7 +166,7 @@ HTML
         $article->setSubTitle($this->request->getParsedBody()['subtitle'] ?? null);
         $article->setAuthor($this->request->getParsedBody()['author'] ? $this->request->getParsedBody()['author'] : null);
         $article->setSource($this->request->getParsedBody()['source'] ? $this->request->getParsedBody()['source'] : null);
-        $article->setAnnotation($this->request->getParsedBody()['title'] ?? '');
+        $article->setAnnotation($this->request->getParsedBody()['annotation'] ?? '');
         $article->setBody(
             $this->request->getParsedBody()['body'] ?? throw new \InvalidArgumentException('Not set body of article')
         );
