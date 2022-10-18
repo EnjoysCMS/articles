@@ -16,6 +16,7 @@ use EnjoysCMS\Articles\Entities\ArticleRepository;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\CategoryRepository;
 use EnjoysCMS\Core\BaseController;
+use EnjoysCMS\Core\Components\Helpers\Setting;
 use EnjoysCMS\Core\Components\Pagination\Pagination;
 use EnjoysCMS\Core\Exception\NotFoundException;
 use Psr\Http\Message\ResponseInterface;
@@ -69,6 +70,7 @@ final class ViewCategory extends BaseController
         $categoryRepository = $em->getRepository(Category::class);
 
 
+        /** @var Category $category */
         $category = $categoryRepository->findByPath($request->getAttribute('slug'));
 
         if ($category === null && !empty($request->getAttribute('slug'))) {
@@ -100,12 +102,12 @@ final class ViewCategory extends BaseController
             $twig->render(
                 '@m/articles/category.twig',
                 [
-//                    '_title' => sprintf(
-//                        '%2$s - %1$s',
-//                        Setting::get('sitename'),
-//                        $page->getTitle()
-//                    ),
-
+                    '_title' => sprintf(
+                        '%2$s [стр. %3$s] - %1$s',
+                        Setting::get('sitename'),
+                        $category?->getFullTitle(reverse: true) ?? 'Статьи',
+                        $pagination->getCurrentPage()
+                    ),
                     'category' => $category,
                     'pagination' => $pagination,
                     'articles' => $paginator->getIterator()

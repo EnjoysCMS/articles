@@ -18,6 +18,7 @@ use EnjoysCMS\Articles\Entities\CategoryRepository;
 use EnjoysCMS\Articles\Entities\Tag;
 use EnjoysCMS\Articles\Entities\TagRepository;
 use EnjoysCMS\Core\BaseController;
+use EnjoysCMS\Core\Components\Helpers\Setting;
 use EnjoysCMS\Core\Components\Pagination\Pagination;
 use EnjoysCMS\Core\Exception\NotFoundException;
 use Psr\Http\Message\ResponseInterface;
@@ -70,6 +71,7 @@ final class ViewTag extends BaseController
         $articleRepository = $em->getRepository(Article::class);
         $tagRepository = $em->getRepository(Tag::class);
 
+        /** @var Tag $tag */
         $tag = $tagRepository->findOneBy([
             'title' => $request->getAttribute('tag')
         ]);
@@ -93,11 +95,12 @@ final class ViewTag extends BaseController
             $twig->render(
                 '@m/articles/tag.twig',
                 [
-//                    '_title' => sprintf(
-//                        '%2$s - %1$s',
-//                        Setting::get('sitename'),
-//                        $page->getTitle()
-//                    ),
+                    '_title' => sprintf(
+                        '%2$s - фильтр по тегу [стр. %3$s] - Статьи - %1$s',
+                        Setting::get('sitename'),
+                        $tag->getTitle(),
+                        $pagination->getCurrentPage()
+                    ),
                     'tag' => $tag,
                     'pagination' => $pagination,
                     'articles' => $paginator->getIterator()
