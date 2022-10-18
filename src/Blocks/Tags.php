@@ -33,12 +33,21 @@ final class Tags extends AbstractBlock
     {
         /** @var TagRepository $repository */
         $repository = $this->em->getRepository(Tag::class);
-        // todo: need improved query result
-        $result = $repository->findBy([], limit: $this->getOption('limit', 20));
+
+        $qb = $repository->getUsedTagsQueryBuilder();
+        $qb
+            ->addSelect('COUNT(t) as HIDDEN cnt')
+            ->groupBy('t.id')
+            ->andWhere('a.status = true')
+            ->andWhere('a.published <= :published')
+            ->setParameter('published', new \DateTimeImmutable('now'))
+            ->orderBy('cnt', 'desc')
+        ;
+
         return $this->twig->render(
             (string)$this->getOption('template'),
             [
-                'tags' => $result,
+                'tags' => $qb->getQuery()->getResult(),
                 'options' => $this->getOptions()
             ]
         );

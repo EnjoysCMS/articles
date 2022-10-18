@@ -31,4 +31,22 @@ class TagRepository extends EntityRepository
             ->setMaxResults($limit)
         ;
     }
+
+    public function getUsedTags()
+    {
+        return $this->getUsedTagsQuery()->getResult();
+    }
+
+    public function getUsedTagsQuery(): Query
+    {
+
+        return $this->getUsedTagsQueryBuilder()->getQuery();
+    }
+
+    public function getUsedTagsQueryBuilder(): QueryBuilder
+    {
+        return $this->createQueryBuilder('t')
+            ->select('t')
+            ->join('t.articles', 'a');
+    }
 }

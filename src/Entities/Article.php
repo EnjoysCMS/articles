@@ -82,7 +82,7 @@ class Article
     private string $body;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Tag")
+     * @ORM\ManyToMany(targetEntity="Tag", inversedBy="articles")
      */
     private Collection $tags;
 

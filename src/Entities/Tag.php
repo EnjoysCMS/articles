@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 namespace EnjoysCMS\Articles\Entities;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -25,6 +27,15 @@ class Tag
      */
     private string $title;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="Article", mappedBy="tags")
+     */
+    private Collection $articles;
+
+    public function __construct()
+    {
+        $this->articles = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -44,5 +55,10 @@ class Tag
     public function __toString(): string
     {
         return $this->title;
+    }
+
+    public function getArticles(): Collection
+    {
+        return $this->articles;
     }
 }
