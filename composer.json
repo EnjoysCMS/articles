@@ -10,7 +10,7 @@
     },
     "require": {
         "php": "^8.0",
-        "enjoyscms/core": "^4.5 <4.8",
+        "enjoyscms/core": "^4.7",
         "enjoyscms/admin": "^4.3",
         "enjoyscms/elfinder": "^4.1",
         "gedmo/doctrine-extensions": "^3.9",

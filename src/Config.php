@@ -28,5 +28,13 @@ final class Config
         return $this->moduleConfig;
     }
 
+    public function getEditorConfig(string $namespace = null)
+    {
+        if ($namespace === null){
+            return $this->moduleConfig->get('editor');
+        }
+        return $this->moduleConfig->get('editor')[$namespace] ?? null;
+    }
+
 
 }

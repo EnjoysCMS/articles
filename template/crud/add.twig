@@ -78,11 +78,11 @@
 {% endblock %}
 
 {% block scripts %}
-    {% if wysiwyg is iterable %}
-        {% for editor in wysiwyg %}
+    {% if contentEditor is iterable %}
+        {% for editor in contentEditor %}
             {{ editor|raw }}
         {% endfor %}
     {% else %}
-        {{ wysiwyg|raw }}
+        {{ contentEditor|raw }}
     {% endif %}
 {% endblock %}

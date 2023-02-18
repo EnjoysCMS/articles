@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace EnjoysCMS\Articles\Crud;
 
 
-use DI\Container;
 use DI\DependencyException;
 use DI\NotFoundException;
 use Doctrine\ORM\EntityManager;
@@ -23,9 +22,8 @@ use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\Tag;
+use EnjoysCMS\Core\Components\ContentEditor\ContentEditor;
 use EnjoysCMS\Core\Components\Helpers\Redirect;
-use EnjoysCMS\Core\Components\WYSIWYG\WYSIWYG;
-use EnjoysCMS\Core\Components\WYSIWYG\WysiwygConfig;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Error\LoaderError;
@@ -39,7 +37,8 @@ final class ArticleAdd
         private ServerRequestInterface $request,
         private RendererInterface $renderer,
         private UrlGeneratorInterface $urlGenerator,
-        private Config $config
+        private Config $config,
+        private ContentEditor $contentEditor
     ) {
     }
 
@@ -53,17 +52,8 @@ final class ArticleAdd
      * @throws NotFoundException
      * @throws ExceptionRule
      */
-    public function __invoke(Container $container): array
+    public function __invoke(): array
     {
-        $paramsWysiwyg = $this->config->getModuleConfig()->get('WYSIWYG');
-
-        $_annotation = new WysiwygConfig($paramsWysiwyg['annotation'] ?? null);
-        $wysiwygAnnotation = WYSIWYG::getInstance($_annotation->getEditorName(), $container);
-        $wysiwygAnnotation?->getEditor()->setTwigTemplate($_annotation->getTemplate());
-
-        $_body = new WysiwygConfig($paramsWysiwyg['body'] ?? null);
-        $wysiwygBody = WYSIWYG::getInstance($_body->getEditorName(), $container);
-        $wysiwygBody?->getEditor()->setTwigTemplate($_body->getTemplate());
 
         $form = $this->getForm();
 
@@ -73,9 +63,13 @@ final class ArticleAdd
 
         $this->renderer->setForm($form);
         return [
-            'wysiwyg' => [
-                $wysiwygAnnotation?->selector('#annotation'),
-                $wysiwygBody?->selector('#body'),
+            'contentEditor' => [
+                $this->contentEditor->withConfig($this->config->getEditorConfig('annotation'))->setSelector(
+                    '#annotation'
+                )->getEmbedCode(),
+                $this->contentEditor->withConfig($this->config->getEditorConfig('body'))->setSelector(
+                    '#body'
+                )->getEmbedCode(),
             ],
             'form' => $this->renderer
         ];
@@ -97,12 +91,11 @@ final class ArticleAdd
                 ['0' => '_без категории_'] + $this->em->getRepository(
                     Category::class
                 )->getFormFillArray()
-            )
-        ;
+            );
         $form->text('title', 'Название (заголовок)')->addRule(Rules::REQUIRED);
         $form->text('slug', 'Уникальное имя для url')
             ->addRule(Rules::REQUIRED)
-            ->addRule(Rules::CALLBACK, '/ - нельзя использовать', function (){
+            ->addRule(Rules::CALLBACK, '/ - нельзя использовать', function () {
                 return !preg_match('/\//', $this->request->getParsedBody()['slug'] ?? '');
             })
             ->addRule(Rules::CALLBACK, 'Использовать нельзя, уже используется', function () {
@@ -115,8 +108,7 @@ final class ArticleAdd
                     )->getQuery()->getOneOrNullResult()
                 );
             })
-            ->setDescription('Используется в URL')
-        ;
+            ->setDescription('Используется в URL');
         $form->text('subtitle', 'Подзаголовок');
         $form->text('author', 'Автор');
         $form->text('source', 'Источник');
@@ -134,8 +126,7 @@ final class ArticleAdd
 HTML
                     ),
                 ]
-            )
-        ;
+            );
         $form->datetimelocal('publish', 'Дата публикации');
         $form->text('tags', 'Теги')->addAttribute(AttributeFactory::create('data-role', 'tagsinput'));
         $form->submit('save', 'Сохранить');
@@ -164,8 +155,12 @@ HTML
             ?? throw new \InvalidArgumentException('Not set slug')
         );
         $article->setSubTitle($this->request->getParsedBody()['subtitle'] ?? null);
-        $article->setAuthor($this->request->getParsedBody()['author'] ? $this->request->getParsedBody()['author'] : null);
-        $article->setSource($this->request->getParsedBody()['source'] ? $this->request->getParsedBody()['source'] : null);
+        $article->setAuthor(
+            $this->request->getParsedBody()['author'] ? $this->request->getParsedBody()['author'] : null
+        );
+        $article->setSource(
+            $this->request->getParsedBody()['source'] ? $this->request->getParsedBody()['source'] : null
+        );
         $article->setAnnotation($this->request->getParsedBody()['annotation'] ?? '');
         $article->setBody(
             $this->request->getParsedBody()['body'] ?? throw new \InvalidArgumentException('Not set body of article')

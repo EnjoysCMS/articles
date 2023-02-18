@@ -1,7 +1,5 @@
 showSubCategoryArticles: true
 perPageLimit: 3
-WYSIWYG:
-  annotation:
-#    summernote: #template path
-  body:
-    summernote: #template path
+editor:
+  annotation: null
+  body: null

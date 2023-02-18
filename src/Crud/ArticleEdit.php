@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace EnjoysCMS\Articles\Crud;
 
 
-use DI\Container;
 use DI\DependencyException;
 use DI\NotFoundException;
 use Doctrine\ORM\EntityManager;
@@ -23,9 +22,8 @@ use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\Tag;
+use EnjoysCMS\Core\Components\ContentEditor\ContentEditor;
 use EnjoysCMS\Core\Components\Helpers\Redirect;
-use EnjoysCMS\Core\Components\WYSIWYG\WYSIWYG;
-use EnjoysCMS\Core\Components\WYSIWYG\WysiwygConfig;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Error\LoaderError;
@@ -45,7 +43,8 @@ final class ArticleEdit
         private ServerRequestInterface $request,
         private RendererInterface $renderer,
         private UrlGeneratorInterface $urlGenerator,
-        private Config $config
+        private Config $config,
+        private ContentEditor $contentEditor
     ) {
         $this->article = $this->em->getRepository(Article::class)->find(
             $this->request->getAttribute('id', 0)
@@ -60,8 +59,9 @@ final class ArticleEdit
      * @throws OptimisticLockException
      * @throws SyntaxError
      * @throws NotFoundException
+     * @throws ExceptionRule
      */
-    public function __invoke(Container $container): array
+    public function __invoke(): array
     {
         $form = $this->getForm();
 
@@ -71,12 +71,14 @@ final class ArticleEdit
 
         $this->renderer->setForm($form);
 
-        list($wysiwygAnnotation, $wysiwygBody) = $this->getWysiwygEditors($container);
-
         return [
-            'wysiwyg' => [
-                $wysiwygAnnotation?->selector('#annotation'),
-                $wysiwygBody?->selector('#body'),
+            'contentEditor' => [
+                $this->contentEditor->withConfig($this->config->getEditorConfig('annotation'))->setSelector(
+                    '#annotation'
+                )->getEmbedCode(),
+                $this->contentEditor->withConfig($this->config->getEditorConfig('body'))->setSelector(
+                    '#body'
+                )->getEmbedCode(),
             ],
             'form' => $this->renderer
         ];
@@ -222,23 +224,4 @@ HTML
         Redirect::http($this->urlGenerator->generate('articles/admin/list'));
     }
 
-    /**
-     * @param Container $container
-     * @return array
-     * @throws DependencyException
-     * @throws NotFoundException
-     */
-    protected function getWysiwygEditors(Container $container): array
-    {
-        $paramsWysiwyg = $this->config->getModuleConfig()->get('WYSIWYG');
-
-        $_annotation = new WysiwygConfig($paramsWysiwyg['annotation'] ?? null);
-        $wysiwygAnnotation = WYSIWYG::getInstance($_annotation->getEditorName(), $container);
-        $wysiwygAnnotation?->getEditor()->setTwigTemplate($_annotation->getTemplate());
-
-        $_body = new WysiwygConfig($paramsWysiwyg['body'] ?? null);
-        $wysiwygBody = WYSIWYG::getInstance($_body->getEditorName(), $container);
-        $wysiwygBody?->getEditor()->setTwigTemplate($_body->getTemplate());
-        return array($wysiwygAnnotation, $wysiwygBody);
-    }
 }
