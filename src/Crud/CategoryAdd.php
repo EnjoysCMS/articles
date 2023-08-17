@@ -6,70 +6,32 @@ declare(strict_types=1);
 namespace EnjoysCMS\Articles\Crud;
 
 
-use DI\Container;
-use DI\DependencyException;
-use DI\NotFoundException;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Exception\NotSupported;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\OptimisticLockException;
 use Enjoys\Forms\Exception\ExceptionRule;
 use Enjoys\Forms\Form;
-use Enjoys\Forms\Interfaces\RendererInterface;
 use Enjoys\Forms\Rules;
-use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Category;
-use EnjoysCMS\Core\Components\Helpers\Redirect;
-use EnjoysCMS\Core\Http\Response\RedirectInterface;
 use Exception;
 use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 final class CategoryAdd
 {
     public function __construct(
-        private EntityManager $em,
-        private ServerRequestInterface $request,
-        private RendererInterface $renderer,
-        private UrlGeneratorInterface $urlGenerator,
-        private Config $config,
-        private RedirectInterface $redirect,
+        private readonly EntityManager $em,
+        private readonly ServerRequestInterface $request
     ) {
     }
 
-    /**
-     * @throws ORMException
-     * @throws RuntimeError
-     * @throws LoaderError
-     * @throws DependencyException
-     * @throws OptimisticLockException
-     * @throws SyntaxError
-     * @throws NotFoundException
-     * @throws ExceptionRule
-     */
-    public function __invoke(Container $container): array
-    {
-
-        $form = $this->getForm();
-
-        if ($form->isSubmitted()) {
-            $this->doSave();
-        }
-
-        $this->renderer->setForm($form);
-        return [
-            'form' => $this->renderer
-        ];
-    }
 
     /**
-     * @return Form
      * @throws ExceptionRule
+     * @throws NotSupported
      */
-    protected function getForm(): Form
+    public function getForm(): Form
     {
         $form = new Form();
         $form->setDefaults(
@@ -85,24 +47,25 @@ final class CategoryAdd
                 ['0' => '_без родительской категории_'] + $this->em->getRepository(
                     Category::class
                 )->getFormFillArray()
-            )
-        ;
+            );
 
         $form->text('title', 'Название (заголовок)')->addRule(Rules::REQUIRED);
         $form->text('slug', 'Уникальное имя для url')
             ->addRule(Rules::REQUIRED)
-            ->addRule(Rules::CALLBACK, '/ - нельзя использовать', function (){
+            ->addRule(Rules::CALLBACK, '/ - нельзя использовать', function () {
                 return !preg_match('/\//', $this->request->getParsedBody()['slug'] ?? '');
             })
-            ->addRule(Rules::CALLBACK, 'Такое уже есть...нельзя)))', function (){
-                return is_null($this->em->getRepository(Category::class)->findOneBy(
-                    [
-                        'slug' => $this->request->getParsedBody()['slug'] ?? '',
-                        'parent' => $this->em->getRepository(Category::class)->find(
-                            $this->request->getParsedBody()['parent'] ?? null
-                        )
-                    ]
-                ));
+            ->addRule(Rules::CALLBACK, 'Такое уже есть...нельзя)))', function () {
+                return is_null(
+                    $this->em->getRepository(Category::class)->findOneBy(
+                        [
+                            'slug' => $this->request->getParsedBody()['slug'] ?? '',
+                            'parent' => $this->em->getRepository(Category::class)->find(
+                                $this->request->getParsedBody()['parent'] ?? null
+                            )
+                        ]
+                    )
+                );
             })
             ->setDescription('Используется в URL');
         $form->textarea('description', 'Описание');
@@ -115,7 +78,7 @@ final class CategoryAdd
      * @throws ORMException
      * @throws Exception
      */
-    private function doSave()
+    public function doAction(): void
     {
         /** @var Category|null $parent */
         $parent = $this->em->getRepository(Category::class)->find($this->request->getParsedBody()['parent'] ?? 0);
@@ -134,7 +97,5 @@ final class CategoryAdd
 
         $this->em->persist($category);
         $this->em->flush();
-
-        $this->redirect->toUrl($this->urlGenerator->generate('articles/admin/category'), emit: true);
     }
 }

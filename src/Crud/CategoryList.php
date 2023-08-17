@@ -8,22 +8,11 @@ namespace EnjoysCMS\Articles\Crud;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Exception\NotSupported;
 use Doctrine\ORM\Exception\ORMException;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\Query\QueryException;
 use Doctrine\Persistence\ObjectRepository;
-use Enjoys\Forms\AttributeFactory;
-use Enjoys\Forms\Form;
-use Enjoys\Forms\Interfaces\RendererInterface;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\CategoryRepository;
-use EnjoysCMS\Core\Http\Response\RedirectInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-
-use function json_decode;
 
 final class CategoryList
 {
@@ -31,12 +20,11 @@ final class CategoryList
 
     private CategoryRepository|ObjectRepository|EntityRepository $repository;
 
+    /**
+     * @throws NotSupported
+     */
     public function __construct(
-        private EntityManager $em,
-        private ServerRequestInterface $request,
-        private UrlGeneratorInterface $urlGenerator,
-        private RendererInterface $renderer,
-        private RedirectInterface $redirect,
+        private readonly EntityManager $em,
     ) {
         $this->repository = $this->em->getRepository(Category::class);
     }
@@ -44,7 +32,7 @@ final class CategoryList
     /**
      * @throws ORMException
      */
-    private function _recursive($data, ?Category $parent = null): void
+    public function _recursive($data, ?Category $parent = null): void
     {
         foreach ($data as $key => $value) {
             /** @var Category $item */
@@ -58,36 +46,10 @@ final class CategoryList
         }
     }
 
-    /**
-     * @throws OptimisticLockException
-     * @throws ORMException
-     * @throws QueryException
-     * @throws NonUniqueResultException
-     * @throws NoResultException
-     */
-    public function __invoke(): array
+    public function getRepository(): EntityRepository|CategoryRepository|ObjectRepository
     {
-        $form = new Form();
-        $form->hidden('nestable-output')->setAttribute(AttributeFactory::create('id', 'nestable-output'));
-        $form->submit('save', 'Сохранить');
-
-
-        if ($form->isSubmitted()) {
-            $this->_recursive(json_decode($this->request->getParsedBody()['nestable-output'] ?? []));
-            $this->em->flush();
-            $this->redirect->toRoute('articles/admin/category', emit: true);
-        }
-        $this->renderer->setForm($form);
-
-
-        return [
-            'form' => $this->renderer->output(),
-            'categories' => $this->repository->getChildNodes(),
-            'breadcrumbs' => [
-                $this->urlGenerator->generate('@admin_index') => 'Главная',
-                $this->urlGenerator->generate('articles/admin/list') => 'Статьи',
-                'Категории',
-            ],
-        ];
+        return $this->repository;
     }
+
+
 }

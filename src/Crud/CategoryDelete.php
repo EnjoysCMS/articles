@@ -6,20 +6,18 @@ declare(strict_types=1);
 namespace EnjoysCMS\Articles\Crud;
 
 
-use DI\Container;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Exception\NotSupported;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
+use Doctrine\Persistence\Mapping\MappingException;
 use Enjoys\Forms\Form;
-use Enjoys\Forms\Interfaces\RendererInterface;
 use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\ArticleRepository;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\CategoryRepository;
-use EnjoysCMS\Core\Http\Response\RedirectInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class CategoryDelete
 {
@@ -28,42 +26,22 @@ final class CategoryDelete
 
     /**
      * @throws NoResultException
+     * @throws NotSupported
      */
     public function __construct(
-        private EntityManager $em,
-        private ServerRequestInterface $request,
-        private RendererInterface $renderer,
-        private UrlGeneratorInterface $urlGenerator,
-        private RedirectInterface $redirect,
+        private readonly EntityManager $em,
+        private readonly ServerRequestInterface $request
     ) {
         $this->category = $this->em->getRepository(Category::class)->find(
             $this->request->getAttribute('id', 0)
         ) ?? throw new NoResultException();
     }
 
-    /**
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
-    public function __invoke(Container $container): array
-    {
-        $form = $this->getForm();
-
-        if ($form->isSubmitted()) {
-            $this->doSave();
-        }
-
-        $this->renderer->setForm($form);
-
-        return [
-            'form' => $this->renderer
-        ];
-    }
 
     /**
      * @return Form
      */
-    protected function getForm(): Form
+    public function getForm(): Form
     {
         $form = new Form();
         $form->setDefaults([
@@ -85,15 +63,17 @@ final class CategoryDelete
     /**
      * @throws OptimisticLockException
      * @throws ORMException
+     * @throws MappingException
      */
-    private function doSave()
+    public function doAction(): void
     {
         /** @var CategoryRepository $repoCategory */
         $repoCategory = $this->em->getRepository(Category::class);
         /** @var ArticleRepository $repoArticles */
         $repoArticles = $this->em->getRepository(Article::class);
 
-        $setCategory = (($this->request->getParsedBody()['set_parent_category'] ?? null) !== null) ? $this->category->getParent() : null;
+        $setCategory = (($this->request->getParsedBody(
+            )['set_parent_category'] ?? null) !== null) ? $this->category->getParent() : null;
 
         if (($this->request->getParsedBody()['remove_childs'] ?? null) !== null) {
             $allCategoryIds = $repoCategory->getAllIds($this->category);
@@ -108,9 +88,12 @@ final class CategoryDelete
             $this->em->clear();
         }
         $this->em->flush();
-
-        $this->redirect->toUrl($this->urlGenerator->generate('articles/admin/category'), emit: true);
     }
+
+    /**
+     * @throws OptimisticLockException
+     * @throws ORMException
+     */
     private function setCategory($articles, ?Category $category = null): void
     {
         foreach ($articles as $article) {

@@ -7,21 +7,17 @@ namespace EnjoysCMS\Articles\Crud;
 
 
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Exception\NotSupported;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Enjoys\Forms\Exception\ExceptionRule;
 use Enjoys\Forms\Form;
-use Enjoys\Forms\Interfaces\RendererInterface;
 use Enjoys\Forms\Rules;
-use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Category;
-use EnjoysCMS\Core\Components\Helpers\Redirect;
-use EnjoysCMS\Core\Http\Response\RedirectInterface;
 use Exception;
 use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class CategoryEdit
 {
@@ -30,45 +26,23 @@ final class CategoryEdit
 
     /**
      * @throws NoResultException
+     * @throws NotSupported
      */
     public function __construct(
-        private EntityManager $em,
-        private ServerRequestInterface $request,
-        private RendererInterface $renderer,
-        private UrlGeneratorInterface $urlGenerator,
-        private Config $config,
-        private RedirectInterface $redirect,
+        private readonly EntityManager $em,
+        private readonly ServerRequestInterface $request
     ) {
         $this->category = $this->em->getRepository(Category::class)->find(
             $this->request->getAttribute('id', 0)
         ) ?? throw new NoResultException();
     }
 
-    /**
-     * @return array
-     * @throws ExceptionRule
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
-    public function __invoke(): array
-    {
-        $form = $this->getForm();
-
-        if ($form->isSubmitted()) {
-            $this->doSave();
-        }
-
-        $this->renderer->setForm($form);
-        return [
-            'form' => $this->renderer
-        ];
-    }
 
     /**
-     * @return Form
      * @throws ExceptionRule
+     * @throws NotSupported
      */
-    protected function getForm(): Form
+    public function getForm(): Form
     {
         $form = new Form();
         $form->setDefaults(
@@ -92,10 +66,10 @@ final class CategoryEdit
         $form->text('title', 'Название (заголовок)')->addRule(Rules::REQUIRED);
         $form->text('slug', 'Уникальное имя для url')
             ->addRule(Rules::REQUIRED)
-            ->addRule(Rules::CALLBACK, '/ - нельзя использовать', function (){
+            ->addRule(Rules::CALLBACK, '/ - нельзя использовать', function () {
                 return !preg_match('/\//', $this->request->getParsedBody()['slug'] ?? '');
             })
-            ->addRule(Rules::CALLBACK, 'Такое уже есть...нельзя)))', function (){
+            ->addRule(Rules::CALLBACK, 'Такое уже есть...нельзя)))', function () {
                 $category = $this->em->getRepository(Category::class)->findOneBy(
                     [
                         'slug' => $this->request->getParsedBody()['slug'] ?? '',
@@ -119,7 +93,7 @@ final class CategoryEdit
      * @throws ORMException
      * @throws Exception
      */
-    private function doSave()
+    public function doAction(): void
     {
         /** @var Category|null $parent */
         $parent = $this->em->getRepository(Category::class)->find($this->request->getParsedBody()['parent'] ?? 0);
@@ -135,7 +109,5 @@ final class CategoryEdit
 
         $this->category->setDescription($this->request->getParsedBody()['description'] ?? '');
         $this->em->flush();
-
-        $this->redirect->toUrl($this->urlGenerator->generate('articles/admin/category'), emit: true);
     }
 }
