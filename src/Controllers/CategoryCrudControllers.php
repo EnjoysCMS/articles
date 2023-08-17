@@ -23,14 +23,15 @@ use EnjoysCMS\Articles\Crud\CategoryAdd;
 use EnjoysCMS\Articles\Crud\CategoryDelete;
 use EnjoysCMS\Articles\Crud\CategoryEdit;
 use EnjoysCMS\Articles\Crud\CategoryList;
+use EnjoysCMS\Core\Routing\Annotation\Route;
 use EnjoysCMS\Module\Admin\AdminController;
 use EnjoysCMS\Module\Admin\Config as AdminConfig;
 use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\Routing\Annotation\Route;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
+#[Route('/articles/admin/category', '@articles_category_')]
 final class CategoryCrudControllers extends AdminController
 {
 
@@ -55,18 +56,15 @@ final class CategoryCrudControllers extends AdminController
      * @throws QueryException
      */
     #[Route(
-        path: '/articles/admin/category',
-        name: 'articles/admin/category',
-        options: [
-            'comment' => '[Admin] Список категорий'
-        ]
+        name: 'list',
+        comment: 'Список категорий'
     )]
     public function list(
         CategoryList $categoryList,
         EntityManager $em,
         AdminConfig $adminConfig,
     ): ResponseInterface {
-        $this->breadcrumbs->add('articles/admin/list', 'Статьи')->setLastBreadcrumb('Категории');
+        $this->breadcrumbs->add('@articles_list', 'Статьи')->setLastBreadcrumb('Категории');
 
         $form = new Form();
         $form->hidden('nestable-output')->setAttribute(AttributeFactory::create('id', 'nestable-output'));
@@ -76,7 +74,7 @@ final class CategoryCrudControllers extends AdminController
         if ($form->isSubmitted()) {
             $categoryList->_recursive(json_decode($this->request->getParsedBody()['nestable-output'] ?? []));
             $em->flush();
-            $this->redirect->toRoute('articles/admin/category', emit: true);
+            $this->redirect->toRoute('@articles_category_list', emit: true);
         }
 
         $rendererForm = $adminConfig->getRendererForm($form);
@@ -103,11 +101,9 @@ final class CategoryCrudControllers extends AdminController
      * @throws NotFoundException
      */
     #[Route(
-        path: '/articles/admin/category/add',
-        name: 'articles/admin/category/add',
-        options: [
-            'comment' => '[Admin] Добавить новую категорию'
-        ]
+        path: '/add',
+        name: 'add',
+        comment: 'Добавить новую категорию'
     )]
     public function add(
         CategoryAdd $add
@@ -116,7 +112,7 @@ final class CategoryCrudControllers extends AdminController
 
         if ($form->isSubmitted()) {
             $add->doAction();
-            return $this->redirect->toRoute('articles/admin/category');
+            return $this->redirect->toRoute('@articles_category_list');
         }
 
         $rendererForm = $this->adminConfig->getRendererForm($form);
@@ -142,14 +138,12 @@ final class CategoryCrudControllers extends AdminController
      * @throws NotFoundException
      */
     #[Route(
-        path: '/articles/admin/category/edit@{id}',
-        name: 'articles/admin/category/edit',
+        path: '/edit@{id}',
+        name: 'edit',
         requirements: [
             'id' => '\d+'
         ],
-        options: [
-            'comment' => '[Admin] Редактировать категорию'
-        ]
+        comment: 'Редактировать категорию'
     )]
     public function edit(CategoryEdit $edit): ResponseInterface
     {
@@ -157,7 +151,7 @@ final class CategoryCrudControllers extends AdminController
 
         if ($form->isSubmitted()) {
             $edit->doAction();
-            return $this->redirect->toRoute('articles/admin/category');
+            return $this->redirect->toRoute('@articles_category_list');
         }
 
         $rendererForm = $this->adminConfig->getRendererForm($form);
@@ -182,14 +176,12 @@ final class CategoryCrudControllers extends AdminController
      * @throws NotFoundException
      */
     #[Route(
-        path: '/articles/admin/category/delete@{id}',
-        name: 'articles/admin/category/delete',
+        path: '/delete@{id}',
+        name: 'delete',
         requirements: [
             'id' => '\d+'
         ],
-        options: [
-            'comment' => '[Admin] Удалить категорию'
-        ]
+        comment: 'Удалить категорию'
     )]
     public function delete(CategoryDelete $delete): ResponseInterface
     {
@@ -197,6 +189,7 @@ final class CategoryCrudControllers extends AdminController
 
         if ($form->isSubmitted()) {
             $delete->doAction();
+            return $this->redirect->toRoute('@articles_category_list');
         }
 
         $rendererForm = $this->adminConfig->getRendererForm($form);

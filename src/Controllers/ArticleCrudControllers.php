@@ -20,13 +20,14 @@ use EnjoysCMS\Articles\Crud\ArticleDelete;
 use EnjoysCMS\Articles\Crud\ArticleEdit;
 use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Core\ContentEditor\ContentEditor;
+use EnjoysCMS\Core\Routing\Annotation\Route;
 use EnjoysCMS\Module\Admin\AdminController;
 use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\Routing\Annotation\Route;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
+#[Route('/articles/admin', '@articles_')]
 final class ArticleCrudControllers extends AdminController
 {
 
@@ -43,11 +44,8 @@ final class ArticleCrudControllers extends AdminController
      * @throws NotSupported
      */
     #[Route(
-        path: '/articles/admin',
-        name: 'articles/admin/list',
-        options: [
-            'comment' => '[Admin] Список всех статей (обзор)'
-        ]
+        name: 'list',
+        comment: 'Список всех статей (обзор)'
     )]
     public function list(EntityManager $em): ResponseInterface
     {
@@ -72,11 +70,9 @@ final class ArticleCrudControllers extends AdminController
      * @throws ExceptionRule
      */
     #[Route(
-        path: '/articles/admin/add',
-        name: 'articles/admin/add',
-        options: [
-            'comment' => '[Admin] Добавить новую статью'
-        ]
+        path: '/add',
+        name: 'add',
+        comment: 'Добавить новую статью'
     )]
     public function add(
         ArticleAdd $add,
@@ -88,7 +84,7 @@ final class ArticleCrudControllers extends AdminController
 
         if ($form->isSubmitted()) {
             $add->doAction();
-            return $this->redirect->toRoute('articles/admin/list');
+            return $this->redirect->toRoute('@articles_list');
         }
 
         $rendererForm = $adminConfig->getRendererForm($form);
@@ -122,14 +118,12 @@ final class ArticleCrudControllers extends AdminController
      * @throws SyntaxError
      */
     #[Route(
-        path: '/articles/admin/edit@{id}',
-        name: 'articles/admin/edit',
+        path: '/edit@{id}',
+        name: 'edit',
         requirements: [
             'id' => '\d+'
         ],
-        options: [
-            'comment' => '[Admin] Редактировать статью'
-        ]
+        comment: 'Редактировать статью'
     )]
     public function edit(
         ArticleEdit $edit,
@@ -141,7 +135,7 @@ final class ArticleCrudControllers extends AdminController
 
         if ($form->isSubmitted()) {
             $edit->doAction();
-            return $this->redirect->toRoute('articles/admin/list');
+            return $this->redirect->toRoute('@articles_list');
         }
 
         $rendererForm = $adminConfig->getRendererForm($form);
@@ -174,14 +168,12 @@ final class ArticleCrudControllers extends AdminController
      * @throws SyntaxError
      */
     #[Route(
-        path: '/articles/admin/delete@{id}',
-        name: 'articles/admin/delete',
+        path: '/delete@{id}',
+        name: 'delete',
         requirements: [
             'id' => '\d+'
         ],
-        options: [
-            'comment' => '[Admin] Удалить статью'
-        ]
+        comment: 'Удалить статью'
     )]
     public function delete(
         ArticleDelete $delete,
@@ -190,7 +182,7 @@ final class ArticleCrudControllers extends AdminController
         $form = $delete->getForm();
         if ($form->isSubmitted()) {
             $delete->doAction();
-            return $this->redirect->toRoute('articles/admin/list');
+            return $this->redirect->toRoute('@articles_list');
         }
         $rendererForm = $adminConfig->getRendererForm($form);
         return $this->response(

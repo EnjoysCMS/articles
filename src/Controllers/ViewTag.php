@@ -18,26 +18,24 @@ use EnjoysCMS\Articles\Entities\TagRepository;
 use EnjoysCMS\Core\AbstractController;
 use EnjoysCMS\Core\Exception\NotFoundException;
 use EnjoysCMS\Core\Pagination\Pagination;
+use EnjoysCMS\Core\Routing\Annotation\Route;
 use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\Routing\Annotation\Route;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
 #[Route(
     path: 'articles/tag:{tag}@{page}',
-    name: 'articles/tag/view',
+    name: 'articles_tag_view',
     requirements: [
         'tag' => '([^@]+)',
         'page' => '\d+'
     ],
-    options: [
-        'comment' => 'Просмотр тегов в public'
-    ],
     defaults: [
         'page' => 1,
     ],
-    priority: 1
+    priority: 1,
+    comment: 'Просмотр тегов'
 )]
 final class ViewTag extends AbstractController
 {
@@ -73,8 +71,7 @@ final class ViewTag extends AbstractController
         $qb->andWhere('a.status = true')
             ->andWhere('a.published <= :published')
             ->setParameter('published', new DateTimeImmutable('now'))
-            ->orderBy('a.published', 'desc')
-        ;
+            ->orderBy('a.published', 'desc');
 
         $qb->setFirstResult($pagination->getOffset())->setMaxResults($pagination->getLimitItems());
 

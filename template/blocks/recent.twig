@@ -3,7 +3,7 @@
     {% for article in articles %}
         <div class="d-flex align-items-center">
             <img src="{{ article.mainImage }}" width="75" height="75" alt="">
-            <div class="ms-3"><a href="{{ path('article/view', {'slug': article.slug}) }}" class="fs-6 recent-post-title">{{ article.title }}</a>
+            <div class="ms-3"><a href="{{ path('articles_view', {'slug': article.slug}) }}" class="fs-6 recent-post-title">{{ article.title }}</a>
                 <p class="mb-0">{{ article.published|date_relative('ru_RU') }}</p>
             </div>
         </div>

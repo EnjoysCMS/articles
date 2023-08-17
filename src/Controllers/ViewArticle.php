@@ -8,33 +8,35 @@ namespace EnjoysCMS\Articles\Controllers;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Exception\NotSupported;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\ArticleRepository;
 use EnjoysCMS\Core\AbstractController;
 use EnjoysCMS\Core\Exception\NotFoundException;
+use EnjoysCMS\Core\Routing\Annotation\Route;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\Routing\Annotation\Route;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
 #[Route(
     path: 'article/{slug}.html',
-    name: 'article/view',
+    name: 'articles_view',
     requirements: ['slug' => '[^.]+'],
-    options: [
-        'comment' => 'Просмотр статей в public'
-    ]
+    comment: 'Просмотр статей'
 )]
 final class ViewArticle extends AbstractController
 {
     /**
+     * @throws LoaderError
      * @throws NotFoundException
      * @throws NotSupported
-     * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function __invoke(EntityManager $em, ServerRequestInterface $request): ResponseInterface
     {

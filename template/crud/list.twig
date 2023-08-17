@@ -10,9 +10,9 @@
             </div>
             <!-- /.card-header -->
             <div class="card-body">
-                {% if access('articles/admin/add') %}
+                {% if access('@articles_add') %}
                     <a class="btn btn-sm btn-primary mb-3"
-                       href="{{ url('articles/admin/add') }}">Добавить новую статью</a>
+                       href="{{ url('@articles_add') }}">Добавить новую статью</a>
                 {% endif %}
 
                 <div class="list-group">
@@ -22,9 +22,9 @@
                             <h5 class="mb-1 font-weight-bold">
                                 {{ article.title }}
                                 <small>
-                                    <a href="{{ path('article/view', {'slug': article.slug}) }}">смотреть</a>
-                                    <a href="{{ path('articles/admin/edit', {'id': article.id}) }}">редактировать</a>
-                                    <a href="{{ path('articles/admin/delete', {'id': article.id}) }}">удалить</a>
+                                    <a href="{{ path('articles_view', {'slug': article.slug}) }}">смотреть</a>
+                                    <a href="{{ path('@articles_edit', {'id': article.id}) }}">редактировать</a>
+                                    <a href="{{ path('@articles_delete', {'id': article.id}) }}">удалить</a>
                                 </small>
                             </h5>
                             <small>Дата публикации: {{ article.published.format('d.m.Y H:i') }}</small>

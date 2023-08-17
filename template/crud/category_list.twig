@@ -19,12 +19,12 @@
             <div class="dd3-content{% if not category.isStatus %} bg-danger{% endif %}">
                 {{ category.getTitle }}
                 <span class="small">
-                    <a href="{{ path('articles/category/view', {"slug": category.slug}) }}"><i class="fa fa-external-link-square-alt"></i></a>
+                    <a href="{{ path('articles_category_view', {"slug": category.slug}) }}"><i class="fa fa-external-link-square-alt"></i></a>
                 </span>
                 <div class="small text-dark">
-                    <a href="{{ path('articles/admin/category/delete', {"id": category.id}) }}">[удалить]</a>
-                    <a href="{{ path('articles/admin/category/edit', {"id": category.id}) }}">[редактировать]</a>
-                    <a href="{{ path('articles/admin/category/add', {"parent": category.id}) }}">[добавить]</a>
+                    <a href="{{ path('@articles_category_delete', {"id": category.id}) }}">[удалить]</a>
+                    <a href="{{ path('@articles_category_edit', {"id": category.id}) }}">[редактировать]</a>
+                    <a href="{{ path('@articles_category_add', {"parent": category.id}) }}">[добавить]</a>
                 </div>
 
             </div>
@@ -47,7 +47,7 @@
             </div>
             <!-- /.card-header -->
             <div class="card-body">
-                <a href="{{ url('articles/admin/category/add') }}" class="btn btn-primary btn-sm mb-3">Добавить
+                <a href="{{ url('@articles_category_add') }}" class="btn btn-primary btn-sm mb-3">Добавить
                     категорию</a>
 
                 {{ form|raw }}

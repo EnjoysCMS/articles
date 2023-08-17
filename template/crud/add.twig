@@ -17,7 +17,7 @@
                 displayKey: 'name',
                 valueKey: 'name',
                 source: function(query) {
-                    let result =  $.get("{{ path('articles/find-tag') }}?search-value="+ query);
+                    let result =  $.get("{{ path('articles_tools_find_tag') }}?search-value="+ query);
                     console.log(result)
                     // return $.map(list, function(tag) {
                     //     console.log(tag)

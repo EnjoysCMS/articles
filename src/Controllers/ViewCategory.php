@@ -19,27 +19,25 @@ use EnjoysCMS\Articles\Entities\CategoryRepository;
 use EnjoysCMS\Core\AbstractController;
 use EnjoysCMS\Core\Exception\NotFoundException;
 use EnjoysCMS\Core\Pagination\Pagination;
+use EnjoysCMS\Core\Routing\Annotation\Route;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\Routing\Annotation\Route;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 
 #[Route(
     path: 'articles/{slug}@{page}',
-    name: 'articles/category/view',
+    name: 'articles_category_view',
     requirements: [
         'slug' => '(\s*|[^@]+)',
         'page' => '\d+'
     ],
-    options: [
-        'comment' => 'Просмотр категорий в public'
-    ],
     defaults: [
         'slug' => null,
         'page' => 1,
-    ]
+    ],
+    comment: 'Просмотр категорий'
 )]
 final class ViewCategory extends AbstractController
 {

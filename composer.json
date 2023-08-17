@@ -19,9 +19,9 @@
     "extra": {
         "module-name": "Статьи",
         "admin-links": {
-            "articles/admin/list": "Обзор (Список)",
-            "articles/admin/add": "Добавить статью",
-            "articles/admin/category": "Категории"
+            "@articles_list": "Обзор (Список)",
+            "@articles_add": "Добавить статью",
+            "@articles_category_list": "Категории"
         }
     },
     "scripts": {

@@ -1,7 +1,7 @@
 <div class="blog-categories mb-3">
     <div class="list-group list-group-flush">
         {% for category in categories %}
-            <a href="{{ path('articles/category/view', {'slug': category.slug}) }}" class="list-group-item bg-transparent">
+            <a href="{{ path('articles_category_view', {'slug': category.slug}) }}" class="list-group-item bg-transparent">
                 {{ category.title }}</a>
         {% endfor %}
     </div>
