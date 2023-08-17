@@ -9,10 +9,10 @@
         }
     },
     "require": {
-        "php": "^8.0",
-        "enjoyscms/core": "^4.7",
-        "enjoyscms/admin": "^4.3",
-        "enjoyscms/elfinder": "^4.1",
+        "php": "^8.1",
+        "enjoyscms/core": "^6.0@dev",
+        "enjoyscms/admin": "^6.0@dev",
+        "enjoyscms/elfinder": "^6.0@dev",
         "gedmo/doctrine-extensions": "^3.9",
         "beberlei/doctrineextensions": "^1.3"
     },
