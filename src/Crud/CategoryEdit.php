@@ -17,6 +17,9 @@ use Enjoys\Forms\Rules;
 use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Core\Components\Helpers\Redirect;
+use EnjoysCMS\Core\Http\Response\RedirectInterface;
+use Exception;
+use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -33,7 +36,8 @@ final class CategoryEdit
         private ServerRequestInterface $request,
         private RendererInterface $renderer,
         private UrlGeneratorInterface $urlGenerator,
-        private Config $config
+        private Config $config,
+        private RedirectInterface $redirect,
     ) {
         $this->category = $this->em->getRepository(Category::class)->find(
             $this->request->getAttribute('id', 0)
@@ -113,7 +117,7 @@ final class CategoryEdit
     /**
      * @throws OptimisticLockException
      * @throws ORMException
-     * @throws \Exception
+     * @throws Exception
      */
     private function doSave()
     {
@@ -123,15 +127,15 @@ final class CategoryEdit
         $this->category->setParent($parent);
         $this->category->setStatus(true);
         $this->category->setTitle(
-            $this->request->getParsedBody()['title'] ?? throw new \InvalidArgumentException('Not set title')
+            $this->request->getParsedBody()['title'] ?? throw new InvalidArgumentException('Not set title')
         );
         $this->category->setSlug(
-            $this->request->getParsedBody()['slug'] ?? throw new \InvalidArgumentException('Not set slug')
+            $this->request->getParsedBody()['slug'] ?? throw new InvalidArgumentException('Not set slug')
         );
 
         $this->category->setDescription($this->request->getParsedBody()['description'] ?? '');
         $this->em->flush();
 
-        Redirect::http($this->urlGenerator->generate('articles/admin/category'));
+        $this->redirect->toUrl($this->urlGenerator->generate('articles/admin/category'), emit: true);
     }
 }

@@ -11,17 +11,17 @@ use EnjoysCMS\Articles\Crud\CategoryAdd;
 use EnjoysCMS\Articles\Crud\CategoryDelete;
 use EnjoysCMS\Articles\Crud\CategoryEdit;
 use EnjoysCMS\Articles\Crud\CategoryList;
-use EnjoysCMS\Module\Admin\AdminBaseController;
+use EnjoysCMS\Module\Admin\AdminController;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
-final class CategoryCrudControllers extends AdminBaseController
+final class CategoryCrudControllers extends AdminController
 {
 
-    public function __construct(private Container $container, ResponseInterface $response = null)
+    public function __construct(Container $container)
     {
-        parent::__construct($this->container, $response);
-        $this->getTwig()->getLoader()->addPath(__DIR__ . '/../../template', 'articles');
+        parent::__construct($container);
+        $this->twig->getLoader()->addPath(__DIR__ . '/../../template', 'articles');
     }
     #[Route(
         path: '/articles/admin/category',
@@ -32,8 +32,8 @@ final class CategoryCrudControllers extends AdminBaseController
     )]
     public function list(): ResponseInterface
     {
-        return $this->responseText(
-            $this->getTwig()->render(
+        return $this->response(
+            $this->twig->render(
                 '@articles/crud/category_list.twig',
                 $this->container->call(CategoryList::class)
             )
@@ -49,8 +49,8 @@ final class CategoryCrudControllers extends AdminBaseController
     )]
     public function add(): ResponseInterface
     {
-        return $this->responseText(
-            $this->getTwig()->render(
+        return $this->response(
+            $this->twig->render(
                 '@articles/crud/add.twig',
                 $this->container->call(CategoryAdd::class)
             )
@@ -69,8 +69,8 @@ final class CategoryCrudControllers extends AdminBaseController
     )]
     public function edit(): ResponseInterface
     {
-        return $this->responseText(
-            $this->getTwig()->render(
+        return $this->response(
+            $this->twig->render(
                 '@articles/crud/edit.twig',
                 $this->container->call(CategoryEdit::class)
             )
@@ -89,8 +89,8 @@ final class CategoryCrudControllers extends AdminBaseController
     )]
     public function delete(): ResponseInterface
     {
-        return $this->responseText(
-            $this->getTwig()->render(
+        return $this->response(
+            $this->twig->render(
                 '@articles/crud/remove.twig',
                 $this->container->call(CategoryDelete::class)
             )

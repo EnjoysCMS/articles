@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace EnjoysCMS\Articles\Crud;
 
 
+use DateTimeImmutable;
 use DI\DependencyException;
 use DI\NotFoundException;
 use Doctrine\ORM\EntityManager;
@@ -22,8 +23,10 @@ use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\Tag;
-use EnjoysCMS\Core\Components\ContentEditor\ContentEditor;
-use EnjoysCMS\Core\Components\Helpers\Redirect;
+use EnjoysCMS\Core\ContentEditor\ContentEditor;
+use EnjoysCMS\Core\Http\Response\RedirectInterface;
+use Exception;
+use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Error\LoaderError;
@@ -38,7 +41,8 @@ final class ArticleAdd
         private RendererInterface $renderer,
         private UrlGeneratorInterface $urlGenerator,
         private Config $config,
-        private ContentEditor $contentEditor
+        private ContentEditor $contentEditor,
+        private RedirectInterface $redirect,
     ) {
     }
 
@@ -83,7 +87,7 @@ final class ArticleAdd
     {
         $form = new Form();
         $form->setDefaults([
-            'publish' => (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s')
+            'publish' => (new DateTimeImmutable('now'))->format('Y-m-d H:i:s')
         ]);
         $form->select('category', 'Категория')
             ->addRule(Rules::REQUIRED)
@@ -136,7 +140,7 @@ HTML
     /**
      * @throws OptimisticLockException
      * @throws ORMException
-     * @throws \Exception
+     * @throws Exception
      */
     private function doSave()
     {
@@ -148,11 +152,11 @@ HTML
         $article->setCategory($this->em->getRepository(Category::class)->find($category));
         $article->setStatus(true);
         $article->setTitle(
-            $this->request->getParsedBody()['title'] ?? throw new \InvalidArgumentException('Not set title')
+            $this->request->getParsedBody()['title'] ?? throw new InvalidArgumentException('Not set title')
         );
         $article->setSlug(
             $this->request->getParsedBody()['slug']
-            ?? throw new \InvalidArgumentException('Not set slug')
+            ?? throw new InvalidArgumentException('Not set slug')
         );
         $article->setSubTitle($this->request->getParsedBody()['subtitle'] ?? null);
         $article->setAuthor(
@@ -163,14 +167,14 @@ HTML
         );
         $article->setAnnotation($this->request->getParsedBody()['annotation'] ?? '');
         $article->setBody(
-            $this->request->getParsedBody()['body'] ?? throw new \InvalidArgumentException('Not set body of article')
+            $this->request->getParsedBody()['body'] ?? throw new InvalidArgumentException('Not set body of article')
         );
 
         $article->setMainImage($this->request->getParsedBody()['img'] ? $this->request->getParsedBody()['img'] : null);
 
 
         $publish = $this->request->getParsedBody()['publish'];
-        $article->setPublished($publish ? new \DateTimeImmutable($publish) : null);
+        $article->setPublished($publish ? new DateTimeImmutable($publish) : null);
 
         $tags = array_filter(
             array_unique(array_map('trim', explode(',', $this->request->getParsedBody()['tags']))),
@@ -192,6 +196,6 @@ HTML
         $this->em->persist($article);
         $this->em->flush();
 
-        Redirect::http($this->urlGenerator->generate('articles/admin/list'));
+        $this->redirect->toUrl($this->urlGenerator->generate('articles/admin/list'), emit: true);
     }
 }

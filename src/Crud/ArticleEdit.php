@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace EnjoysCMS\Articles\Crud;
 
 
+use DateTimeImmutable;
 use DI\DependencyException;
 use DI\NotFoundException;
 use Doctrine\ORM\EntityManager;
@@ -22,8 +23,10 @@ use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\Tag;
-use EnjoysCMS\Core\Components\ContentEditor\ContentEditor;
-use EnjoysCMS\Core\Components\Helpers\Redirect;
+use EnjoysCMS\Core\ContentEditor\ContentEditor;
+use EnjoysCMS\Core\Http\Response\RedirectInterface;
+use Exception;
+use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Error\LoaderError;
@@ -44,7 +47,8 @@ final class ArticleEdit
         private RendererInterface $renderer,
         private UrlGeneratorInterface $urlGenerator,
         private Config $config,
-        private ContentEditor $contentEditor
+        private ContentEditor $contentEditor,
+        private RedirectInterface $redirect,
     ) {
         $this->article = $this->em->getRepository(Article::class)->find(
             $this->request->getAttribute('id', 0)
@@ -111,8 +115,7 @@ final class ArticleEdit
                 'custom-switch custom-switch-off-danger custom-switch-on-success',
                 Form::ATTRIBUTES_FILLABLE_BASE
             )
-            ->fill([1 => 'Статус'])
-        ;
+            ->fill([1 => 'Статус']);
 
         $form->select('category', 'Категория')
             ->addRule(Rules::REQUIRED)
@@ -120,12 +123,11 @@ final class ArticleEdit
                 ['0' => '_без категории_'] + $this->em->getRepository(
                     Category::class
                 )->getFormFillArray()
-            )
-        ;
+            );
         $form->text('title', 'Название (заголовок)')->addRule(Rules::REQUIRED);
         $form->text('slug', 'Уникальное имя для url')
             ->addRule(Rules::REQUIRED)
-            ->addRule(Rules::CALLBACK, '/ - нельзя использовать', function (){
+            ->addRule(Rules::CALLBACK, '/ - нельзя использовать', function () {
                 return !preg_match('/\//', $this->request->getParsedBody()['slug'] ?? '');
             })
             ->addRule(Rules::CALLBACK, 'Использовать нельзя, уже используется', function () {
@@ -141,8 +143,7 @@ final class ArticleEdit
                 }
                 return $article->getId() === $this->article->getId();
             })
-            ->setDescription('Используется в URL')
-        ;
+            ->setDescription('Используется в URL');
         $form->text('subtitle', 'Подзаголовок');
         $form->text('author', 'Автор');
         $form->text('source', 'Источник');
@@ -161,8 +162,7 @@ final class ArticleEdit
 HTML
                     ),
                 ]
-            )
-        ;
+            );
 
         $form->datetimelocal('publish', 'Дата публикации');
         $form->text('tags', 'Теги');
@@ -173,7 +173,7 @@ HTML
     /**
      * @throws OptimisticLockException
      * @throws ORMException
-     * @throws \Exception
+     * @throws Exception
      */
     private function doSave(): void
     {
@@ -181,24 +181,32 @@ HTML
         $this->article->setCategory($this->em->getRepository(Category::class)->find($category));
         $this->article->setStatus((bool)($this->request->getParsedBody()['status'] ?? false));
         $this->article->setTitle(
-            $this->request->getParsedBody()['title'] ?? throw new \InvalidArgumentException('Not set title')
+            $this->request->getParsedBody()['title'] ?? throw new InvalidArgumentException('Not set title')
         );
         $this->article->setSlug(
-            $this->request->getParsedBody()['slug'] ?? throw new \InvalidArgumentException('Not set slug')
+            $this->request->getParsedBody()['slug'] ?? throw new InvalidArgumentException('Not set slug')
         );
-        $this->article->setSubTitle($this->request->getParsedBody()['subtitle'] ? $this->request->getParsedBody()['subtitle'] : null);
-        $this->article->setAuthor($this->request->getParsedBody()['author'] ? $this->request->getParsedBody()['author'] : null);
-        $this->article->setSource($this->request->getParsedBody()['source'] ? $this->request->getParsedBody()['source'] : null);
+        $this->article->setSubTitle(
+            $this->request->getParsedBody()['subtitle'] ? $this->request->getParsedBody()['subtitle'] : null
+        );
+        $this->article->setAuthor(
+            $this->request->getParsedBody()['author'] ? $this->request->getParsedBody()['author'] : null
+        );
+        $this->article->setSource(
+            $this->request->getParsedBody()['source'] ? $this->request->getParsedBody()['source'] : null
+        );
         $this->article->setAnnotation($this->request->getParsedBody()['annotation'] ?? '');
         $this->article->setBody(
-            $this->request->getParsedBody()['body'] ?? throw new \InvalidArgumentException('Not set body of article')
+            $this->request->getParsedBody()['body'] ?? throw new InvalidArgumentException('Not set body of article')
         );
 
-        $this->article->setMainImage($this->request->getParsedBody()['img'] ? $this->request->getParsedBody()['img'] : null);
+        $this->article->setMainImage(
+            $this->request->getParsedBody()['img'] ? $this->request->getParsedBody()['img'] : null
+        );
 
 
         $publish = $this->request->getParsedBody()['publish'];
-        $this->article->setPublished($publish ? new \DateTimeImmutable($publish) : null);
+        $this->article->setPublished($publish ? new DateTimeImmutable($publish) : null);
 
         $tags = array_filter(
             array_unique(array_map('trim', explode(',', $this->request->getParsedBody()['tags']))),
@@ -221,7 +229,7 @@ HTML
 
         $this->em->flush();
 
-        Redirect::http($this->urlGenerator->generate('articles/admin/list'));
+        $this->redirect->toUrl($this->urlGenerator->generate('articles/admin/list'), emit: true);
     }
 
 }

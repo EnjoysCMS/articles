@@ -4,36 +4,22 @@ declare(strict_types=1);
 
 namespace EnjoysCMS\Articles;
 
-use DI\DependencyException;
-use DI\FactoryInterface;
-use DI\NotFoundException;
-use EnjoysCMS\Core\Components\Modules\ModuleConfig;
+use EnjoysCMS\Core\Modules\AbstractModuleConfig;
 
-final class Config
+final class Config extends AbstractModuleConfig
 {
-    private ModuleConfig $moduleConfig;
 
-    /**
-     * @throws DependencyException
-     * @throws NotFoundException
-     */
-    public function __construct(FactoryInterface $factory)
+    public function getModulePackageName(): string
     {
-        $this->moduleConfig = $factory->make(ModuleConfig::class, ['moduleName' => 'enjoyscms/articles']);
-    }
-
-
-    public function getModuleConfig(): ModuleConfig
-    {
-        return $this->moduleConfig;
+        return 'enjoyscms/articles';
     }
 
     public function getEditorConfig(string $namespace = null)
     {
         if ($namespace === null){
-            return $this->moduleConfig->get('editor');
+            return $this->get('editor');
         }
-        return $this->moduleConfig->get('editor')[$namespace] ?? null;
+        return $this->get('editor')[$namespace] ?? null;
     }
 
 

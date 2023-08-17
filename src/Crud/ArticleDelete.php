@@ -7,24 +7,19 @@ namespace EnjoysCMS\Articles\Crud;
 
 
 use DI\Container;
-use DI\DependencyException;
-use DI\NotFoundException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Enjoys\Forms\Form;
 use Enjoys\Forms\Interfaces\RendererInterface;
-use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Core\Components\Helpers\Redirect;
 use EnjoysCMS\Core\Components\WYSIWYG\WYSIWYG;
 use EnjoysCMS\Core\Components\WYSIWYG\WysiwygConfig;
+use EnjoysCMS\Core\Http\Response\RedirectInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 final class ArticleDelete
 {
@@ -38,7 +33,8 @@ final class ArticleDelete
         private EntityManager $em,
         private ServerRequestInterface $request,
         private RendererInterface $renderer,
-        private UrlGeneratorInterface $urlGenerator
+        private UrlGeneratorInterface $urlGenerator,
+        private RedirectInterface $redirect,
     ) {
         $this->article = $this->em->getRepository(Article::class)->find(
             $this->request->getAttribute('id', 0)
@@ -83,7 +79,7 @@ final class ArticleDelete
         $this->em->remove($this->article);
         $this->em->flush();
 
-        Redirect::http($this->urlGenerator->generate('articles/admin/list'));
+        $this->redirect->toUrl($this->urlGenerator->generate('articles/admin/list'), emit: true);
     }
 
 }

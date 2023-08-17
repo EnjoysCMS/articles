@@ -17,7 +17,7 @@ use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\ArticleRepository;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\CategoryRepository;
-use EnjoysCMS\Core\Components\Helpers\Redirect;
+use EnjoysCMS\Core\Http\Response\RedirectInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -33,7 +33,8 @@ final class CategoryDelete
         private EntityManager $em,
         private ServerRequestInterface $request,
         private RendererInterface $renderer,
-        private UrlGeneratorInterface $urlGenerator
+        private UrlGeneratorInterface $urlGenerator,
+        private RedirectInterface $redirect,
     ) {
         $this->category = $this->em->getRepository(Category::class)->find(
             $this->request->getAttribute('id', 0)
@@ -108,7 +109,7 @@ final class CategoryDelete
         }
         $this->em->flush();
 
-        Redirect::http($this->urlGenerator->generate('articles/admin/category'));
+        $this->redirect->toUrl($this->urlGenerator->generate('articles/admin/category'), emit: true);
     }
     private function setCategory($articles, ?Category $category = null): void
     {

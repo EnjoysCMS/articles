@@ -17,12 +17,13 @@ use Doctrine\Persistence\ObjectRepository;
 use Enjoys\Forms\AttributeFactory;
 use Enjoys\Forms\Form;
 use Enjoys\Forms\Interfaces\RendererInterface;
-use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\CategoryRepository;
-use EnjoysCMS\Core\Components\Helpers\Redirect;
+use EnjoysCMS\Core\Http\Response\RedirectInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
+use function json_decode;
 
 final class CategoryList
 {
@@ -34,7 +35,8 @@ final class CategoryList
         private EntityManager $em,
         private ServerRequestInterface $request,
         private UrlGeneratorInterface $urlGenerator,
-        private RendererInterface $renderer
+        private RendererInterface $renderer,
+        private RedirectInterface $redirect,
     ) {
         $this->repository = $this->em->getRepository(Category::class);
     }
@@ -71,9 +73,9 @@ final class CategoryList
 
 
         if ($form->isSubmitted()) {
-            $this->_recursive(\json_decode($this->request->getParsedBody()['nestable-output'] ?? []));
+            $this->_recursive(json_decode($this->request->getParsedBody()['nestable-output'] ?? []));
             $this->em->flush();
-            Redirect::http($this->urlGenerator->generate('articles/admin/category'));
+            $this->redirect->toRoute('articles/admin/category', emit: true);
         }
         $this->renderer->setForm($form);
 
@@ -82,7 +84,7 @@ final class CategoryList
             'form' => $this->renderer->output(),
             'categories' => $this->repository->getChildNodes(),
             'breadcrumbs' => [
-                $this->urlGenerator->generate('admin/index') => 'Главная',
+                $this->urlGenerator->generate('@admin_index') => 'Главная',
                 $this->urlGenerator->generate('articles/admin/list') => 'Статьи',
                 'Категории',
             ],

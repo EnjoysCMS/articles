@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace EnjoysCMS\Articles\Controllers;
 
 
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -15,14 +16,12 @@ use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\ArticleRepository;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\CategoryRepository;
-use EnjoysCMS\Core\BaseController;
-use EnjoysCMS\Core\Components\Helpers\Setting;
-use EnjoysCMS\Core\Components\Pagination\Pagination;
+use EnjoysCMS\Core\AbstractController;
 use EnjoysCMS\Core\Exception\NotFoundException;
+use EnjoysCMS\Core\Pagination\Pagination;
+use Exception;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -42,7 +41,7 @@ use Twig\Error\SyntaxError;
         'page' => 1,
     ]
 )]
-final class ViewCategory extends BaseController
+final class ViewCategory extends AbstractController
 {
     /**
      * @throws NoResultException
@@ -51,17 +50,15 @@ final class ViewCategory extends BaseController
      * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws \Exception
+     * @throws Exception
      */
     public function __invoke(
         EntityManager $em,
-        Environment $twig,
-        ServerRequestInterface $request,
         Config $config
     ): ResponseInterface {
         $pagination = new Pagination(
-            $request->getAttribute('page', 1),
-            $config->getModuleConfig()->get('perPageLimit', false)
+            $this->request->getAttribute('page', 1),
+            $config->get('perPageLimit', false)
         );
 
         /** @var CategoryRepository $categoryRepository */
@@ -71,14 +68,14 @@ final class ViewCategory extends BaseController
 
 
         /** @var Category $category */
-        $category = $categoryRepository->findByPath($request->getAttribute('slug'));
+        $category = $categoryRepository->findByPath($this->request->getAttribute('slug'));
 
-        if ($category === null && !empty($request->getAttribute('slug'))) {
+        if ($category === null && !empty($this->request->getAttribute('slug'))) {
             throw new NotFoundException();
         }
 
 
-        if ($config->getModuleConfig()->get('showSubCategoryArticles', false)) {
+        if ($config->get('showSubCategoryArticles', false)) {
             $qb = $articleRepository->getFindByCategoriesIdsDQL($categoryRepository->getAllIds($category));
         } else {
             $qb = $articleRepository->getQueryBuilderFindByCategory($category);
@@ -86,7 +83,7 @@ final class ViewCategory extends BaseController
 
         $qb->andWhere('a.status = true')
             ->andWhere('a.published <= :published')
-            ->setParameter('published', new \DateTimeImmutable('now'))
+            ->setParameter('published', new DateTimeImmutable('now'))
             ->orderBy('a.published', 'desc')
         ;
 
@@ -98,13 +95,13 @@ final class ViewCategory extends BaseController
 
 //dd($paginator->getQuery());
         /** @var Article $article */
-        return $this->responseText(
-            $twig->render(
+        return $this->response(
+            $this->twig->render(
                 '@m/articles/category.twig',
                 [
                     '_title' => sprintf(
                         '%2$s [стр. %3$s] - %1$s',
-                        Setting::get('sitename'),
+                        $this->setting->get('sitename'),
                         $category?->getFullTitle(reverse: true) ?? 'Статьи',
                         $pagination->getCurrentPage()
                     ),

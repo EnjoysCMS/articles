@@ -10,7 +10,7 @@
             </div>
             <!-- /.card-header -->
             <div class="card-body">
-                {% if access2route('articles/admin/add') %}
+                {% if access('articles/admin/add') %}
                     <a class="btn btn-sm btn-primary mb-3"
                        href="{{ url('articles/admin/add') }}">Добавить новую статью</a>
                 {% endif %}
