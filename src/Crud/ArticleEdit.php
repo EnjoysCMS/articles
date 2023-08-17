@@ -7,9 +7,8 @@ namespace EnjoysCMS\Articles\Crud;
 
 
 use DateTimeImmutable;
-use DI\DependencyException;
-use DI\NotFoundException;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Exception\NotSupported;
 use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\OptimisticLockException;
@@ -17,21 +16,13 @@ use Enjoys\Forms\Elements\Html;
 use Enjoys\Forms\Elements\Text;
 use Enjoys\Forms\Exception\ExceptionRule;
 use Enjoys\Forms\Form;
-use Enjoys\Forms\Interfaces\RendererInterface;
 use Enjoys\Forms\Rules;
-use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\Category;
 use EnjoysCMS\Articles\Entities\Tag;
-use EnjoysCMS\Core\ContentEditor\ContentEditor;
-use EnjoysCMS\Core\Http\Response\RedirectInterface;
 use Exception;
 use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 final class ArticleEdit
 {
@@ -40,59 +31,23 @@ final class ArticleEdit
 
     /**
      * @throws NoResultException
+     * @throws NotSupported
      */
     public function __construct(
-        private EntityManager $em,
-        private ServerRequestInterface $request,
-        private RendererInterface $renderer,
-        private UrlGeneratorInterface $urlGenerator,
-        private Config $config,
-        private ContentEditor $contentEditor,
-        private RedirectInterface $redirect,
+        private readonly EntityManager $em,
+        private readonly ServerRequestInterface $request,
     ) {
         $this->article = $this->em->getRepository(Article::class)->find(
             $this->request->getAttribute('id', 0)
         ) ?? throw new NoResultException();
     }
 
-    /**
-     * @throws ORMException
-     * @throws RuntimeError
-     * @throws LoaderError
-     * @throws DependencyException
-     * @throws OptimisticLockException
-     * @throws SyntaxError
-     * @throws NotFoundException
-     * @throws ExceptionRule
-     */
-    public function __invoke(): array
-    {
-        $form = $this->getForm();
-
-        if ($form->isSubmitted()) {
-            $this->doSave();
-        }
-
-        $this->renderer->setForm($form);
-
-        return [
-            'contentEditor' => [
-                $this->contentEditor->withConfig($this->config->getEditorConfig('annotation'))->setSelector(
-                    '#annotation'
-                )->getEmbedCode(),
-                $this->contentEditor->withConfig($this->config->getEditorConfig('body'))->setSelector(
-                    '#body'
-                )->getEmbedCode(),
-            ],
-            'form' => $this->renderer
-        ];
-    }
 
     /**
-     * @return Form
      * @throws ExceptionRule
+     * @throws NotSupported
      */
-    protected function getForm(): Form
+    public function getForm(): Form
     {
         $form = new Form();
         $form->setDefaults([
@@ -175,7 +130,7 @@ HTML
      * @throws ORMException
      * @throws Exception
      */
-    private function doSave(): void
+    public function doAction(): void
     {
         $category = $this->request->getParsedBody()['category'] ?? 0;
         $this->article->setCategory($this->em->getRepository(Category::class)->find($category));
@@ -229,7 +184,6 @@ HTML
 
         $this->em->flush();
 
-        $this->redirect->toUrl($this->urlGenerator->generate('articles/admin/list'), emit: true);
     }
 
 }

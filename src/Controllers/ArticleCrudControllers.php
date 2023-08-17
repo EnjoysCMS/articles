@@ -7,10 +7,19 @@ namespace EnjoysCMS\Articles\Controllers;
 
 
 use DI\Container;
+use DI\DependencyException;
+use DI\NotFoundException;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Exception\NotSupported;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
+use Enjoys\Forms\Exception\ExceptionRule;
+use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Crud\ArticleAdd;
 use EnjoysCMS\Articles\Crud\ArticleDelete;
 use EnjoysCMS\Articles\Crud\ArticleEdit;
-use EnjoysCMS\Articles\Crud\ArticlesList;
+use EnjoysCMS\Articles\Entities\Article;
+use EnjoysCMS\Core\ContentEditor\ContentEditor;
 use EnjoysCMS\Module\Admin\AdminController;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -31,6 +40,7 @@ final class ArticleCrudControllers extends AdminController
      * @throws SyntaxError
      * @throws RuntimeError
      * @throws LoaderError
+     * @throws NotSupported
      */
     #[Route(
         path: '/articles/admin',
@@ -39,20 +49,27 @@ final class ArticleCrudControllers extends AdminController
             'comment' => '[Admin] Список всех статей (обзор)'
         ]
     )]
-    public function list(): ResponseInterface
+    public function list(EntityManager $em): ResponseInterface
     {
         return $this->response(
             $this->twig->render(
                 '@articles/crud/list.twig',
-                $this->container->call(ArticlesList::class)
+                [
+                    'articles' => $em->getRepository(Article::class)->findAll()
+                ]
             )
         );
     }
 
     /**
+     * @throws LoaderError
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws LoaderError
+     * @throws DependencyException
+     * @throws NotFoundException
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws ExceptionRule
      */
     #[Route(
         path: '/articles/admin/add',
@@ -61,20 +78,48 @@ final class ArticleCrudControllers extends AdminController
             'comment' => '[Admin] Добавить новую статью'
         ]
     )]
-    public function add(): ResponseInterface
-    {
+    public function add(
+        ArticleAdd $add,
+        Config $config,
+        \EnjoysCMS\Module\Admin\Config $adminConfig,
+        ContentEditor $contentEditor
+    ): ResponseInterface {
+        $form = $add->getForm();
+
+        if ($form->isSubmitted()) {
+            $add->doAction();
+            return $this->redirect->toRoute('articles/admin/list');
+        }
+
+        $rendererForm = $adminConfig->getRendererForm($form);
+
         return $this->response(
             $this->twig->render(
                 '@articles/crud/add.twig',
-                $this->container->call(ArticleAdd::class)
+                [
+                    'contentEditor' => [
+                        $contentEditor->withConfig($config->getEditorConfig('annotation'))->setSelector(
+                            '#annotation'
+                        )->getEmbedCode(),
+                        $contentEditor->withConfig($config->getEditorConfig('body'))->setSelector(
+                            '#body'
+                        )->getEmbedCode(),
+                    ],
+                    'form' => $rendererForm
+                ]
             )
         );
     }
 
     /**
+     * @throws DependencyException
+     * @throws ExceptionRule
+     * @throws LoaderError
+     * @throws NotFoundException
+     * @throws ORMException
+     * @throws OptimisticLockException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws LoaderError
      */
     #[Route(
         path: '/articles/admin/edit@{id}',
@@ -86,20 +131,47 @@ final class ArticleCrudControllers extends AdminController
             'comment' => '[Admin] Редактировать статью'
         ]
     )]
-    public function edit(): ResponseInterface
-    {
+    public function edit(
+        ArticleEdit $edit,
+        Config $config,
+        \EnjoysCMS\Module\Admin\Config $adminConfig,
+        ContentEditor $contentEditor,
+    ): ResponseInterface {
+        $form = $edit->getForm();
+
+        if ($form->isSubmitted()) {
+            $edit->doAction();
+            return $this->redirect->toRoute('articles/admin/list');
+        }
+
+        $rendererForm = $adminConfig->getRendererForm($form);
+
         return $this->response(
             $this->twig->render(
                 '@articles/crud/edit.twig',
-                $this->container->call(ArticleEdit::class)
+                [
+                    'contentEditor' => [
+                        $contentEditor->withConfig($config->getEditorConfig('annotation'))->setSelector(
+                            '#annotation'
+                        )->getEmbedCode(),
+                        $contentEditor->withConfig($config->getEditorConfig('body'))->setSelector(
+                            '#body'
+                        )->getEmbedCode(),
+                    ],
+                    'form' => $rendererForm
+                ]
             )
         );
     }
 
     /**
+     * @throws DependencyException
+     * @throws LoaderError
+     * @throws NotFoundException
+     * @throws ORMException
+     * @throws OptimisticLockException
      * @throws RuntimeError
      * @throws SyntaxError
-     * @throws LoaderError
      */
     #[Route(
         path: '/articles/admin/delete@{id}',
@@ -111,12 +183,22 @@ final class ArticleCrudControllers extends AdminController
             'comment' => '[Admin] Удалить статью'
         ]
     )]
-    public function delete(): ResponseInterface
-    {
+    public function delete(
+        ArticleDelete $delete,
+        \EnjoysCMS\Module\Admin\Config $adminConfig,
+    ): ResponseInterface {
+        $form = $delete->getForm();
+        if ($form->isSubmitted()) {
+            $delete->doAction();
+            return $this->redirect->toRoute('articles/admin/list');
+        }
+        $rendererForm = $adminConfig->getRendererForm($form);
         return $this->response(
             $this->twig->render(
                 '@articles/crud/remove.twig',
-                $this->container->call(ArticleDelete::class)
+                [
+                    'form' => $rendererForm
+                ]
             )
         );
     }
