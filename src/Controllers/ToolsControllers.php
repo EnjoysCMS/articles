@@ -7,6 +7,7 @@ namespace EnjoysCMS\Articles\Controllers;
 
 
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\Exception\NotSupported;
 use EnjoysCMS\Articles\Entities\Tag;
 use EnjoysCMS\Articles\Entities\TagRepository;
 use EnjoysCMS\Core\AbstractController;
@@ -16,6 +17,9 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class ToolsControllers extends AbstractController
 {
+    /**
+     * @throws NotSupported
+     */
     #[Route(
         path: '/articles/tools/find-tag',
         name: 'articles/find-tag',

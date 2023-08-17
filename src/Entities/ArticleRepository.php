@@ -6,7 +6,10 @@ declare(strict_types=1);
 namespace EnjoysCMS\Articles\Entities;
 
 
+use DateTimeImmutable;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 
@@ -19,6 +22,10 @@ final class ArticleRepository extends EntityRepository
             ->leftJoin('a.category', 'c');
     }
 
+    /**
+     * @throws NonUniqueResultException
+     * @throws NoResultException
+     */
     public function findBySlug(string $slugs): ?Article
     {
         $slugs = explode('/', $slugs);
@@ -36,7 +43,7 @@ final class ArticleRepository extends EntityRepository
 
         $dql->andWhere('a.status = true');
         $dql->andWhere('a.published <= :published');
-        $dql->setParameter('published', new \DateTimeImmutable('now'));
+        $dql->setParameter('published', new DateTimeImmutable('now'));
 
         return $dql->getQuery()->getOneOrNullResult();
     }

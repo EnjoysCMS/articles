@@ -21,7 +21,6 @@ class CategoryRepository extends ClosureTreeRepository
 
     /**
      * @throws NonUniqueResultException
-     * @throws NoResultException
      */
     public function findByPath(?string $path)
     {
@@ -42,7 +41,7 @@ class CategoryRepository extends ClosureTreeRepository
             $alias = $alias . $k;
             //
             $dql->leftJoin(
-                \EnjoysCMS\Articles\Entities\Category::class,
+                Category::class,
                 $alias,
                 Expr\Join::WITH,
                 "{$alias}.parent = $parentJoin AND {$alias}.slug = :slug{$k} AND {$alias}.status = true"

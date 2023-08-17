@@ -7,7 +7,7 @@ namespace EnjoysCMS\Articles\Controllers;
 
 
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Exception\NotSupported;
 use EnjoysCMS\Articles\Entities\Article;
 use EnjoysCMS\Articles\Entities\ArticleRepository;
 use EnjoysCMS\Core\AbstractController;
@@ -15,6 +15,9 @@ use EnjoysCMS\Core\Exception\NotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 #[Route(
     path: 'article/{slug}.html',
@@ -27,7 +30,11 @@ use Symfony\Component\Routing\Annotation\Route;
 final class ViewArticle extends AbstractController
 {
     /**
-     * @throws NoResultException
+     * @throws NotFoundException
+     * @throws NotSupported
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function __invoke(EntityManager $em, ServerRequestInterface $request): ResponseInterface
     {
