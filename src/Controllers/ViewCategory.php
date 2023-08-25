@@ -9,7 +9,6 @@ namespace EnjoysCMS\Articles\Controllers;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use EnjoysCMS\Articles\Config;
 use EnjoysCMS\Articles\Entities\Article;
@@ -42,7 +41,6 @@ use Twig\Error\SyntaxError;
 final class ViewCategory extends AbstractController
 {
     /**
-     * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws NotFoundException
      * @throws LoaderError
@@ -52,7 +50,7 @@ final class ViewCategory extends AbstractController
      */
     public function __invoke(
         EntityManager $em,
-        Config $config
+        Config $config,
     ): ResponseInterface {
         $pagination = new Pagination(
             $this->request->getAttribute('page', 1),
@@ -65,7 +63,7 @@ final class ViewCategory extends AbstractController
         $categoryRepository = $em->getRepository(Category::class);
 
 
-        /** @var Category $category */
+        /** @var null|Category $category */
         $category = $categoryRepository->findByPath($this->request->getAttribute('slug'));
 
         if ($category === null && !empty($this->request->getAttribute('slug'))) {
@@ -82,32 +80,54 @@ final class ViewCategory extends AbstractController
         $qb->andWhere('a.status = true')
             ->andWhere('a.published <= :published')
             ->setParameter('published', new DateTimeImmutable('now'))
-            ->orderBy('a.published', 'desc')
-        ;
+            ->orderBy('a.published', 'desc');
 
         $qb->setFirstResult($pagination->getOffset())->setMaxResults($pagination->getLimitItems());
 
 
-        $paginator = new Paginator($qb);
-        $pagination->setTotalItems($paginator->count());
+        $articles = new Paginator($qb);
+        $pagination->setTotalItems($articles->count());
 
-//dd($paginator->getQuery());
-        /** @var Article $article */
         return $this->response(
             $this->twig->render(
                 '@m/articles/category.twig',
                 [
-                    '_title' => sprintf(
-                        '%2$s [стр. %3$s] - %1$s',
-                        $this->setting->get('sitename'),
-                        $category?->getFullTitle(reverse: true) ?? 'Статьи',
-                        $pagination->getCurrentPage()
-                    ),
+                    'meta' => $this->getMetaInfo($config, $category, $pagination),
                     'category' => $category,
                     'pagination' => $pagination,
-                    'articles' => $paginator->getIterator()
+                    'articles' => $articles
                 ]
             )
         );
+    }
+
+    public function getMetaInfo(
+        Config $config,
+        ?Category $category,
+        Pagination $pagination
+    ): array {
+        return [
+            'title' => $this->container->call(
+                $config->get('categoryMetaTitleCallback') ?? function (
+                Pagination $pagination,
+                Category $category = null
+            ) {
+                return sprintf(
+                    '%2$s [стр. %3$s] - %1$s',
+                    $this->setting->get('sitename'),
+                    $category?->getFullTitle(reverse: true) ?? 'Статьи',
+                    $pagination->getCurrentPage()
+                );
+            }, ['category' => $category, 'pagination' => $pagination]
+            ),
+            'description' => $this->container->call(
+                $config->get('categoryMetaDescriptionCallback') ?? fn() => null,
+                ['category' => $category, 'pagination' => $pagination]
+            ),
+            'keywords' => $this->container->call(
+                $config->get('categoryMetaKeywordsCallback') ?? fn() => null,
+                ['category' => $category, 'pagination' => $pagination]
+            ),
+        ];
     }
 }

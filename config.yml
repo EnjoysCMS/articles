@@ -3,3 +3,12 @@ perPageLimit: 3
 editor:
   annotation: null
   body: null
+categoryMetaTitleCallback: ~
+categoryMetaDescriptionCallback: ~
+categoryMetaKeywordsCallback: ~
+articleMetaTitleCallback: ~
+articleMetaDescriptionCallback: ~
+articleMetaKeywordsCallback: ~
+tagMetaTitleCallback: ~
+tagMetaDescriptionCallback: ~
+tagMetaKeywordsCallback: ~
