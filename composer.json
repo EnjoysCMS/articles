@@ -25,7 +25,7 @@
         }
     },
     "scripts": {
-        "post-install-cmd": "EnjoysCMS\\Articles\\Composer::assetsInstall",
-        "post-update-cmd": "EnjoysCMS\\Articles\\Composer::assetsInstall"
+        "post-install-cmd": "EnjoysCMS\\Articles\\Assets::install",
+        "post-update-cmd": "EnjoysCMS\\Articles\\Assets::install"
     }
 }
