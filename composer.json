@@ -5,7 +5,8 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "EnjoysCMS\\Articles\\": "src/"
+            "EnjoysCMS\\Articles\\": "src/",
+            "EnjoysCMS\\Module\\Articles\\Composer\\Scripts\\": "scripts/"
         }
     },
     "require": {
@@ -25,7 +26,14 @@
         }
     },
     "scripts": {
-        "post-install-cmd": "EnjoysCMS\\Articles\\Assets::install",
-        "post-update-cmd": "EnjoysCMS\\Articles\\Assets::install"
+        "articles-assets-install": "EnjoysCMS\\Module\\Articles\\Composer\\Scripts\\AssetsInstallCommand",
+        "post-install-cmd": [
+            "@print-module-name Articles",
+            "@articles-assets-install"
+        ],
+        "post-update-cmd": [
+            "@print-module-name Articles",
+            "@articles-assets-install"
+        ]
     }
 }
