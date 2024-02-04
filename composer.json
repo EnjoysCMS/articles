@@ -35,5 +35,8 @@
             "@print-module-name Articles",
             "@articles-assets-install"
         ]
+    },
+    "require-dev": {
+        "rector/rector": "^0.19.6"
     }
 }

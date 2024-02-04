@@ -9,27 +9,22 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="TagRepository")
- * @ORM\Table(name="articles_tags")
- */
+#[ORM\Table(name: 'articles_tags')]
+#[ORM\Entity(repositoryClass: TagRepository::class)]
 class Tag
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private string $title;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Article", mappedBy="tags")
+     * @var Collection<array-key, Article>
      */
+    #[ORM\ManyToMany(targetEntity: Article::class, mappedBy: 'tags')]
     private Collection $articles;
 
     public function __construct()

@@ -10,95 +10,64 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 
-/**
- * @ORM\Entity(repositoryClass="ArticleRepository")
- * @ORM\Table(name="articles_list")
- */
+#[ORM\Table(name: 'articles_list')]
+#[ORM\Entity(repositoryClass: ArticleRepository::class)]
 class Article
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue(strategy="AUTO")
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'AUTO')]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
-    /**
-     * @Gedmo\Timestampable(on="create")
-     * @ORM\Column(type="datetime_immutable", name="created_at")
-     */
+    #[Gedmo\Timestampable(on: 'create')]
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $created;
 
-    /**
-     * @Gedmo\Timestampable(on="change", field={"title", "body"})
-     * @ORM\Column(type="datetime_immutable", nullable=true, name="updated_at")
-     */
+    #[Gedmo\Timestampable(on: 'change', field: ['title', 'body'])]
+    #[ORM\Column(name: 'updated_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updated = null;
 
-    /**
-     * @ORM\Column(type="datetime_immutable", nullable=true, name="published_at")
-     */
+    #[ORM\Column(name: 'published_at', type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $published = null;
 
-    /**
-     * @ORM\Column(type="boolean", options={"default": true})
-     */
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private bool $status;
 
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255)]
     private string $title;
 
-    /**
-     * @ORM\Column(type="string")
-     */
+    #[ORM\Column(type: 'string')]
     private string $slug;
 
-    /**
-     * @ORM\Column(type="string", nullable=true, length=255)
-     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $subTitle = null;
 
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     */
+    #[ORM\Column(type: 'string', nullable: true)]
     private ?string $source = null;
 
-    /**
-     * @ORM\Column(type="string", nullable=true)
-     */
+    #[ORM\Column(type: 'string', nullable: true)]
     private ?string $author = null;
 
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $annotation = null;
 
-    /**
-     * @ORM\Column(type="text")
-     */
+    #[ORM\Column(type: 'text')]
     private string $body;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Tag", inversedBy="articles")
+     * @var Collection<array-key, Tag>
      */
+    #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'articles')]
     private Collection $tags;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Category")
-     */
+    #[ORM\ManyToOne(targetEntity: Category::class)]
     private ?Category $category;
 
-    /**
-     * @ORM\Column(type="integer", options={"default": 0})
-     */
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $views = 0;
 
-    /**
-     * @ORM\Column(type="string", nullable=true, name="main_image")
-     */
+    #[ORM\Column(name: 'main_image', type: 'string', nullable: true)]
     private ?string $mainImage = null;
 
     public function __construct()
