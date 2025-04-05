@@ -14,7 +14,7 @@ final class Config extends AbstractModuleConfig
         return 'enjoyscms/articles';
     }
 
-    public function getEditorConfig(string $namespace = null)
+    public function getEditorConfig(?string $namespace = null)
     {
         if ($namespace === null){
             return $this->get('editor');

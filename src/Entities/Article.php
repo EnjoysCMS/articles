@@ -185,7 +185,7 @@ class Article
         $this->category = $category;
     }
 
-    public function getSlug(string $lastPartSlug = null, bool $fool = true): string
+    public function getSlug(?string $lastPartSlug = null, bool $fool = true): string
     {
         if ($fool === false){
             return $this->slug;

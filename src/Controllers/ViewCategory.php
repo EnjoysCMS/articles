@@ -110,7 +110,7 @@ final class ViewCategory extends AbstractController
             'title' => $this->container->call(
                 $config->get('categoryMetaTitleCallback') ?? function (
                 Pagination $pagination,
-                Category $category = null
+                ?Category $category = null
             ) {
                 return sprintf(
                     '%2$s [стр. %3$s] - %1$s',

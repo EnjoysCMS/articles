@@ -106,7 +106,7 @@ class Category
         $this->slug = $slug;
     }
 
-    public function setParent(Category $parent = null): void
+    public function setParent(?Category $parent = null): void
     {
         $this->parent = $parent;
     }
