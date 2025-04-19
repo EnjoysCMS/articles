@@ -1,6 +1,9 @@
 {
     "cmd": {
-        "Assets install": ["yarn", "install"]
+        "Assets install": [
+            "yarn",
+            "install"
+        ]
     },
     "symlink": {
         "node_modules": "/modules/articles/node_modules"
