@@ -6,6 +6,7 @@
         ]
     },
     "symlink": {
-        "node_modules": "/modules/articles/node_modules"
+        "node_modules": "/modules/articles/node_modules",
+        "template/assets": "/modules/articles/template/assets"
     }
 }
