@@ -55,7 +55,7 @@ final class Recent extends AbstractBlock
         /** @var ArticleRepository $repository */
         $repository = $this->em->getRepository(Article::class);
         $qb = $repository->getFindAllBuilder();
-        $qb->setMaxResults($this->getBlockOptions()->getValue('limit') ?? 5);
+        $qb->setMaxResults((int)($this->getBlockOptions()->getValue('limit') ?? 5));
         $qb->andWhere('a.status = true')
            ->andWhere('a.published <= :published')
            ->setParameter('published', new DateTimeImmutable('now'));
