@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace EnjoysCMS\Articles\Entities;
 
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -32,7 +33,8 @@ class CategoryRepository extends ClosureTreeRepository
         $alias = 'c';
         $dql = $this->createQueryBuilder($alias);
 
-        $parameters = ['slug' => $first];
+        $parameters = new ArrayCollection();
+        $parameters->add(new Query\Parameter('slug', $first));
 
         $dql->where("{$alias}.parent IS NULL AND {$alias}.slug = :slug  AND {$alias}.status = true");
         $parentJoin = "{$alias}.id";
@@ -47,7 +49,7 @@ class CategoryRepository extends ClosureTreeRepository
                 "{$alias}.parent = $parentJoin AND {$alias}.slug = :slug{$k} AND {$alias}.status = true"
             );
 
-            $parameters['slug' . $k] = $slug;
+            $parameters->add(new Query\Parameter('slug' . $k, $slug));
 
             $parentJoin = $alias . '.id';
         }
